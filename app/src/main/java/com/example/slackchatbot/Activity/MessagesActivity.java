@@ -16,7 +16,6 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,11 +26,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.balysv.materialripple.MaterialRippleLayout;
-import com.crowdfire.cfalertdialog.CFAlertDialog;
 import com.example.slackchatbot.Adapter.ChannelMessagesAdapter;
 import com.example.slackchatbot.Adapter.DMMessagesAdapter;
 import com.example.slackchatbot.Adapter.ScheduleArrayAdapter;
 import com.example.slackchatbot.Class.ApiRequestClass;
+import com.example.slackchatbot.Class.CustomSnackBar;
 import com.example.slackchatbot.Class.RecyclerItemClickListener;
 import com.example.slackchatbot.Models.ChannelInfoAPI.ChannelInfoAPI;
 import com.example.slackchatbot.Models.ChannelJoinAPI.ChannelJoinAPI;
@@ -58,8 +57,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import static com.example.slackchatbot.Activity.MainActivity.BOT_TOKEN;
-import static com.example.slackchatbot.Activity.MainActivity.USER_TOKEN;
+import static com.example.slackchatbot.Activity.MenuActivity.BOT_TOKEN;
+import static com.example.slackchatbot.Activity.MenuActivity.USER_TOKEN;
 
 public class MessagesActivity extends AppCompatActivity {
 
@@ -76,11 +75,10 @@ public class MessagesActivity extends AppCompatActivity {
     DMMessagesAPI userMessages;
     ChannelMessagesAPI channelMessages;
 
-    boolean firstTym = true;
-
     RecyclerView messagesRV;
     MaterialRippleLayout backBtn, timer;
     TextView title;
+    Dialog dialog;
 
     SharedPreferences prefs;
 
@@ -125,21 +123,9 @@ public class MessagesActivity extends AppCompatActivity {
 
         sendBtn.setOnClickListener(it -> sendMessage());
 
-        sendBotBtn.setOnClickListener(it -> {
-            if (firstTym) {
-                firstTym = false;
-                CFAlertDialog.Builder builder = new CFAlertDialog.Builder(MessagesActivity.this)
-                        .setDialogStyle(CFAlertDialog.CFAlertStyle.ALERT)
-                        .setTitle("Alert !!!")
-                        .setMessage("This option will send messages as ChatBot. Users will not be able to know that messages are sent by you until you tell them.")
-                        .addButton("OK", -1, -1, CFAlertDialog.CFAlertActionStyle.POSITIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                            dialog.dismiss();
-                        });
-                builder.show();
-            } else {
-                sendAsBot();
-            }
-        });
+//        sendBotBtn.setOnClickListener(it -> {
+//            sendAsBot();
+//        });
 
         backBtn.setOnClickListener(it -> super.onBackPressed());
 
@@ -155,10 +141,9 @@ public class MessagesActivity extends AppCompatActivity {
             window.setBackgroundDrawableResource(android.R.color.transparent);
             int[] selected = {0};
             EditText msg = dialogView.findViewById(R.id.schedule_message_et);
-            CardView send = dialogView.findViewById(R.id.schedule_send);
-            ImageView close = dialogView.findViewById(R.id.schedule_close);
+            CardView chatbot = dialogView.findViewById(R.id.schedule_chatbot);
+            CardView user = dialogView.findViewById(R.id.schedule_user);
             Spinner scheduling = dialogView.findViewById(R.id.schedule_channels_spinner);
-            RadioGroup sendAs = dialogView.findViewById(R.id.schedule_radio_group);
             TextView date = dialogView.findViewById(R.id.schedule_date);
             TextView time = dialogView.findViewById(R.id.schedule_time);
 
@@ -186,7 +171,7 @@ public class MessagesActivity extends AppCompatActivity {
                 }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show();
             });
 
-            close.setOnClickListener(d -> dialog.dismiss());
+
             scheduling.setAdapter(new ScheduleArrayAdapter(MessagesActivity.this, R.layout.spinner_list_item, R.id.spinner_tv, SCHEDULES));
             scheduling.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -200,49 +185,52 @@ public class MessagesActivity extends AppCompatActivity {
                 }
             });
 
-            send.setOnClickListener(d -> {
+            user.setOnClickListener(d -> {
                 if(!msg.getText().toString().trim().isEmpty()){
                     Long ts = (stringToDate(dateSelected[0] + "-" + dateSelected[1] + "-" + dateSelected[2] + " " + timeSelected[0] + "-" + timeSelected[1]).getTime());
-                    if(sendAs.getCheckedRadioButtonId() == R.id.schedule_user_radio){
-                        if(userChannelInfo.getChannel().getIsMember()){
-                            dialog.dismiss();
-                            Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN,id,msg.getText().toString().trim(),String.valueOf(ts/1000));
-                            call.enqueue(new Callback<SuccessResponse>() {
-                                @Override
-                                public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                    if(response.isSuccessful()){
-                                        Toast.makeText(MessagesActivity.this,"Message Scheduled",Toast.LENGTH_LONG).show();
-                                    }
+                    if(userChannelInfo.getChannel().getIsMember()){
+                        dialog.dismiss();
+                        Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN,id,msg.getText().toString().trim(),String.valueOf(ts/1000));
+                        call.enqueue(new Callback<SuccessResponse>() {
+                            @Override
+                            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                if(response.isSuccessful()){
+                                    CustomSnackBar.showSnackBar("Message Scheduled Successfully",MessagesActivity.this);
                                 }
+                            }
 
-                                @Override
-                                public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                            @Override
+                            public void onFailure(Call<SuccessResponse> call, Throwable t) {
 
-                                }
-                            });
-                        }else{
-                            Toast.makeText(this,"You are not a member of this channel",Toast.LENGTH_LONG).show();
-                        }
+                            }
+                        });
                     }else{
-                        if(botChannelInfo.getChannel().getIsMember()){
-                            dialog.dismiss();
-                            Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN,id,msg.getText().toString().trim(),String.valueOf(ts));
-                            call.enqueue(new Callback<SuccessResponse>() {
-                                @Override
-                                public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                    if(response.isSuccessful()){
-                                        Toast.makeText(MessagesActivity.this,"Message Scheduled",Toast.LENGTH_LONG).show();
-                                    }
-                                }
+                        Toast.makeText(this,"You are not a member of this channel",Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
 
-                                @Override
-                                public void onFailure(Call<SuccessResponse> call, Throwable t) {
-
+            chatbot.setOnClickListener(d -> {
+                if(!msg.getText().toString().trim().isEmpty()) {
+                    Long ts = (stringToDate(dateSelected[0] + "-" + dateSelected[1] + "-" + dateSelected[2] + " " + timeSelected[0] + "-" + timeSelected[1]).getTime());
+                    if (botChannelInfo.getChannel().getIsMember()) {
+                        dialog.dismiss();
+                        Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf(ts / 1000));
+                        call.enqueue(new Callback<SuccessResponse>() {
+                            @Override
+                            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                if (response.isSuccessful()) {
+                                    CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
                                 }
-                            });
-                        }else{
-                            Toast.makeText(this,"ChatBot is not a member of this channel",Toast.LENGTH_LONG).show();
-                        }
+                            }
+
+                            @Override
+                            public void onFailure(Call<SuccessResponse> call, Throwable t) {
+
+                            }
+                        });
+                    } else {
+                        Toast.makeText(this, "ChatBot is not a member of this channel", Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -252,7 +240,7 @@ public class MessagesActivity extends AppCompatActivity {
 
         if (type.equals("channel")) {
             title.setText(name);
-            sendBotBtn.setVisibility(View.VISIBLE);
+//            sendBotBtn.setVisibility(View.VISIBLE);
             timer.setVisibility(View.VISIBLE);
             loadChannelMessages();
             loadChannelInfo();
@@ -261,11 +249,15 @@ public class MessagesActivity extends AppCompatActivity {
             loadUserMessages();
         } else{
             title.setText(name);
-            sendBotBtn.setVisibility(View.VISIBLE);
+//            sendBotBtn.setVisibility(View.VISIBLE);
             loadChannelMessages();
             loadChannelInfo();
-            sendBotBtn.setVisibility(View.GONE);
+//            sendBotBtn.setVisibility(View.GONE);
         }
+    }
+
+    public void onBackPressed() {
+        finish();
     }
 
     private void sendMessage() {
@@ -337,28 +329,33 @@ public class MessagesActivity extends AppCompatActivity {
     }
 
     private void loadUserInfo() {
-        Call<UserProfileAPI> call = retrofitCall.userProfile(BOT_TOKEN, user);
-        call.enqueue(new Callback<UserProfileAPI>() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onResponse(Call<UserProfileAPI> call, Response<UserProfileAPI> response) {
-                if (response.isSuccessful()) {
-                    title.setText(response.body().getUser().getName());
-                } else {
-                    title.setText(id);
-                    try {
-                        Log.e(TAG, response.errorBody().string());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        try {
+            Call<UserProfileAPI> call = retrofitCall.userProfile(BOT_TOKEN, user);
+            call.enqueue(new Callback<UserProfileAPI>() {
+                @SuppressLint("SetTextI18n")
+                @Override
+                public void onResponse(Call<UserProfileAPI> call, Response<UserProfileAPI> response) {
+                    if (response.isSuccessful()) {
+                        title.setText(response.body().getUser().getName());
+                    } else {
+                        title.setText(id);
+                        try {
+                            Log.e(TAG, response.errorBody().string());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<UserProfileAPI> call, Throwable t) {
-                title.setText(id);
-            }
-        });
+                @Override
+                public void onFailure(Call<UserProfileAPI> call, Throwable t) {
+                    title.setText(id);
+                }
+            });
+        }
+        catch (Exception e){
+            Log.e(TAG,e.getMessage());
+        }
     }
 
     private void loadChannelMessages() {
@@ -376,39 +373,41 @@ public class MessagesActivity extends AppCompatActivity {
                     messagesRV.addOnItemTouchListener(new RecyclerItemClickListener(MessagesActivity.this, messagesRV, new RecyclerItemClickListener.OnItemClickListener() {
                         @Override
                         public void onItemClick(View view, int position) {
-                            CFAlertDialog.Builder builder = new CFAlertDialog.Builder(MessagesActivity.this)
-                                    .setDialogStyle(CFAlertDialog.CFAlertStyle.BOTTOM_SHEET)
-                                    .setTitle("Alert !!!")
-                                    .setMessage("This action will permanently delete this message from conversation. Are you sure you want to delete this message ?")
-                                    .addButton("DELETE", -1, -1, CFAlertDialog.CFAlertActionStyle.NEGATIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                        Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, id, channelMessages.getMessages().get(position).getTs());
-                                        call.enqueue(new Callback<DelMessageAPI>() {
-                                            @Override
-                                            public void onResponse(Call<DelMessageAPI> call, Response<DelMessageAPI> response) {
-                                                if (response.isSuccessful()) {
-                                                    loadUserMessages();
-                                                } else {
-                                                    Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
-                                                    try {
-                                                        Log.e(TAG, response.errorBody().string());
-                                                    } catch (IOException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
+                            dialog = new Dialog(MessagesActivity.this);
+                            View dialogView = LayoutInflater.from(MessagesActivity.this).inflate(R.layout.delete_message_confirm_dialog,null);
+                            dialog.setContentView(dialogView);
+                            CardView yes = dialogView.findViewById(R.id.cv_delete_confirm);
+                            CardView cancel = dialogView.findViewById(R.id.cv_delete_denied);
+                            yes.setOnClickListener(v -> {
+                                Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, id, channelMessages.getMessages().get(position).getTs());
+                                call.enqueue(new Callback<DelMessageAPI>() {
+                                    @Override
+                                    public void onResponse(Call<DelMessageAPI> call, Response<DelMessageAPI> response) {
+                                        if (response.isSuccessful()) {
+                                            loadUserMessages();
+                                        } else {
+                                            Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
+                                            try {
+                                                Log.e(TAG, response.errorBody().string());
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
                                             }
+                                        }
+                                    }
 
-                                            @Override
-                                            public void onFailure(Call<DelMessageAPI> call, Throwable t) {
-                                                Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
-                                                Log.e(TAG, t.getMessage());
-                                            }
-                                        });
-                                        dialog.dismiss();
-                                    })
-                                    .addButton("CANCEL", -1, -1, CFAlertDialog.CFAlertActionStyle.DEFAULT, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                        dialog.dismiss();
-                                    });
-                            builder.show();
+                                    @Override
+                                    public void onFailure(Call<DelMessageAPI> call, Throwable t) {
+                                        Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
+                                        Log.e(TAG, t.getMessage());
+                                    }
+                                });
+                                dialog.dismiss();
+                            });
+
+                            cancel.setOnClickListener(view1 -> {
+                                dialog.dismiss();
+                            });
+                            dialog.show();
                         }
 
                         @Override
@@ -447,39 +446,41 @@ public class MessagesActivity extends AppCompatActivity {
                     messagesRV.addOnItemTouchListener(new RecyclerItemClickListener(MessagesActivity.this, messagesRV, new RecyclerItemClickListener.OnItemClickListener() {
                         @Override
                         public void onItemClick(View view, int position) {
-                            CFAlertDialog.Builder builder = new CFAlertDialog.Builder(MessagesActivity.this)
-                                    .setDialogStyle(CFAlertDialog.CFAlertStyle.BOTTOM_SHEET)
-                                    .setTitle("Alert !!!")
-                                    .setMessage("This action will permanently delete this message from conversation. Are you sure you want to delete this message ?")
-                                    .addButton("DELETE", -1, -1, CFAlertDialog.CFAlertActionStyle.NEGATIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                        Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, id, userMessages.getMessages().get(position).getTs());
-                                        call.enqueue(new Callback<DelMessageAPI>() {
-                                            @Override
-                                            public void onResponse(Call<DelMessageAPI> call, Response<DelMessageAPI> response) {
-                                                if (response.isSuccessful()) {
-                                                    loadUserMessages();
-                                                } else {
-                                                    Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
-                                                    try {
-                                                        Log.e(TAG, response.errorBody().string());
-                                                    } catch (IOException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
+                            dialog = new Dialog(MessagesActivity.this);
+                            View dialogView = LayoutInflater.from(MessagesActivity.this).inflate(R.layout.delete_message_confirm_dialog,null);
+                            dialog.setContentView(dialogView);
+                            CardView yes = dialogView.findViewById(R.id.cv_delete_confirm);
+                            CardView cancel = dialogView.findViewById(R.id.cv_delete_denied);
+                            yes.setOnClickListener(v -> {
+                                Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, id, userMessages.getMessages().get(position).getTs());
+                                call.enqueue(new Callback<DelMessageAPI>() {
+                                    @Override
+                                    public void onResponse(Call<DelMessageAPI> call, Response<DelMessageAPI> response) {
+                                        if (response.isSuccessful()) {
+                                            loadUserMessages();
+                                        } else {
+                                            Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
+                                            try {
+                                                Log.e(TAG, response.errorBody().string());
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
                                             }
+                                        }
+                                    }
 
-                                            @Override
-                                            public void onFailure(Call<DelMessageAPI> call, Throwable t) {
-                                                Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
-                                                Log.e(TAG, t.getMessage());
-                                            }
-                                        });
-                                        dialog.dismiss();
-                                    })
-                                    .addButton("CANCEL", -1, -1, CFAlertDialog.CFAlertActionStyle.DEFAULT, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                        dialog.dismiss();
-                                    });
-                            builder.show();
+                                    @Override
+                                    public void onFailure(Call<DelMessageAPI> call, Throwable t) {
+                                        Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
+                                        Log.e(TAG, t.getMessage());
+                                    }
+                                });
+                                    dialog.dismiss();
+                            });
+
+                            cancel.setOnClickListener(v -> {
+                                dialog.dismiss();
+                            });
+                            dialog.show();
                         }
 
                         @Override
@@ -517,59 +518,21 @@ public class MessagesActivity extends AppCompatActivity {
                             if (response.isSuccessful()) {
                                 botChannelInfo = response.body();
                                 if(userChannelInfo.getChannel().getIsChannel() && botChannelInfo.getChannel().getIsChannel()){
-                                    if (!userChannelInfo.getChannel().getIsMember() && !botChannelInfo.getChannel().getIsMember()) {
-                                        CFAlertDialog.Builder builder = new CFAlertDialog.Builder(MessagesActivity.this)
-                                                .setDialogStyle(CFAlertDialog.CFAlertStyle.BOTTOM_SHEET)
-                                                .setTitle("Alert !!!")
-                                                .setMessage("You are not a member of this channel and neither is ChatBot. Do you want to join this channel ?")
-                                                .addButton("ADD ONLY ME", -1, -1, CFAlertDialog.CFAlertActionStyle.POSITIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    joinChannel(USER_TOKEN, id);
-                                                    dialog.dismiss();
-                                                })
-                                                .addButton("ADD CHATBOT", -1, -1, CFAlertDialog.CFAlertActionStyle.POSITIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    joinChannel(BOT_TOKEN, id);
-                                                    dialog.dismiss();
-                                                })
-                                                .addButton("ADD BOTH", -1, -1, CFAlertDialog.CFAlertActionStyle.POSITIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    joinChannel(USER_TOKEN, id);
-                                                    joinChannel(BOT_TOKEN, id);
-                                                    dialog.dismiss();
-                                                })
-                                                .addButton("CANCEL", -1, -1, CFAlertDialog.CFAlertActionStyle.NEGATIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    holder.setVisibility(View.GONE);
-                                                    dialog.dismiss();
-                                                });
-                                        builder.show();
-                                    } else if (!userChannelInfo.getChannel().getIsMember()) {
-                                        CFAlertDialog.Builder builder = new CFAlertDialog.Builder(MessagesActivity.this)
-                                                .setDialogStyle(CFAlertDialog.CFAlertStyle.BOTTOM_SHEET)
-                                                .setTitle("Alert !!!")
-                                                .setMessage("You are not a member of this channel. Do you want to join this channel ?")
-                                                .addButton("JOIN", -1, -1, CFAlertDialog.CFAlertActionStyle.POSITIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    joinChannel(USER_TOKEN, id);
-                                                    dialog.dismiss();
-                                                })
-                                                .addButton("CANCEL", -1, -1, CFAlertDialog.CFAlertActionStyle.NEGATIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    holder.setVisibility(View.VISIBLE);
-                                                    dialog.dismiss();
-                                                });
-                                        builder.show();
-                                    } else if (!botChannelInfo.getChannel().getIsMember()) {
-                                        CFAlertDialog.Builder builder = new CFAlertDialog.Builder(MessagesActivity.this)
-                                                .setDialogStyle(CFAlertDialog.CFAlertStyle.BOTTOM_SHEET)
-                                                .setTitle("Alert !!!")
-                                                .setMessage("ChatBot is not a member of this channel. Do you want to add ChatBot in this channel ?")
-                                                .addButton("ADD CHATBOT", -1, -1, CFAlertDialog.CFAlertActionStyle.POSITIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    joinChannel(BOT_TOKEN, id);
-                                                    dialog.dismiss();
-                                                })
-                                                .addButton("CANCEL", -1, -1, CFAlertDialog.CFAlertActionStyle.NEGATIVE, CFAlertDialog.CFAlertActionAlignment.JUSTIFIED, (dialog, which) -> {
-                                                    holder.setVisibility(View.VISIBLE);
-                                                    dialog.dismiss();
-                                                });
-                                        builder.show();
-                                    } else {
-                                        holder.setVisibility(View.VISIBLE);
+                                    if (!userChannelInfo.getChannel().getIsMember() || !botChannelInfo.getChannel().getIsMember()) {
+                                        dialog = new Dialog(MessagesActivity.this);
+                                        View dialogView = LayoutInflater.from(MessagesActivity.this).inflate(R.layout.add_bot_user_dialog,null);
+                                        dialog.setContentView(dialogView);
+                                        CardView user = dialogView.findViewById(R.id.cv_user);
+                                        CardView bot = dialogView.findViewById(R.id.cv_chatbot);
+                                        user.setOnClickListener(view -> {
+                                            joinChannel(USER_TOKEN,id);
+                                            dialog.dismiss();
+                                        });
+                                        bot.setOnClickListener(view -> {
+                                            joinChannel(BOT_TOKEN,id);
+                                            dialog.dismiss();
+                                        });
+                                        dialog.show();
                                     }
                                 }
                             } else {

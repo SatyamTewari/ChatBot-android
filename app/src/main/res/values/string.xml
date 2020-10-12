@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bot_token">xoxb-1397180468276-1427017216852-YAvQLpVPLRJCjOSgOsRzBSiV</string>
+    <string name="user_token">xoxp-1397180468276-1384257892662-1406115609703-4e3f2255db7fe9e036be5f998fd017df</string>
+    <string name="app_name">ChatBot</string>
+    <string name="channels">Channels</string>
+    <string name="plus_text">+</string>
+    <string name="direct_messages">Direct Messages</string>
+    <string name="hashtag">#</string>
+    <string name="type_message">type message</string>
+    <string name="schedule_message">Schedule Message</string>
+    <string name="message_to_send">message to send</string>
+    <string name="type_message_here">Type your message here</string>
+    <string name="scheduling">Scheduling</string>
+    <string name="user">User</string>
+    <string name="chatbot">ChatBot</string>
+    <string name="add_bot_user">Please add Chatbot and User to the channel</string>
+    <string name="delete_confirmation">Are you sure you want to delete this message?</string>
+    <string name="send_as">Send As</string>
+    <string name="cancel">cancel</string>
+    <string name="send">SEND</string>
+    <string name="date">Date :</string>
+    <string name="time">Time</string>
+    <string name="create_new_channel">Create New Channel</string>
+    <string name="channel_name">channel name</string>
+    <string name="public_channel">Public Channel</string>
+    <string name="private_channel">Private Channel</string>
+    <string name="create">Create</string>
+    <string name="scheduled_user_messages">Scheduled User Messages</string>
+    <string name="scheduled_bot_messages">Scheduled Bot Messages</string>
+    <string name="delete">delete</string>
+</resources>

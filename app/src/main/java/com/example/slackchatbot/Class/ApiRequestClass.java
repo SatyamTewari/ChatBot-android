@@ -24,48 +24,45 @@ public interface ApiRequestClass {
 
     /**user token api*/
 
-    @GET("conversations.list")
+    @GET("conversations.list") //get all channels list
     Call<ChannelsAPI> channels(@Query("token") String token, @QueryMap Map<String, String> query);
 
-    @GET("conversations.history")
+    @GET("conversations.history") //to get all the conversations on a particular channel
     Call<ChannelMessagesAPI> messagesChannel(@Query("token") String token, @Query("channel") String id);
 
-    @GET("conversations.history")
+    @GET("conversations.history") //to get all the conversations from a particular dm
     Call<DMMessagesAPI> messagesUser(@Query("token") String token, @Query("channel") String id);
 
-    @POST("conversations.create")
+    @POST("conversations.create") //create channel
     Call<SuccessResponse> createChannel(@Query("token") String token, @Query("name") String name, @Query("is_private") String is_private);
 
 
     /**bot tokens api*/
-    @GET("users.info")
+
+    @GET("users.info") //for user info of all dm
     Call<UserProfileAPI> userProfile(@Query("token") String token, @Query("user") String id);
 
 
-
-
-
-
-
     /**common*/
-    @GET("conversations.info")
+
+    @GET("conversations.info") //to get channel info like channel name, public/private, etc
     Call<ChannelInfoAPI> channelInfo(@Query("token") String token, @Query("channel") String id);
 
-    @POST("conversations.join")
+    @POST("conversations.join") // to join channel
     Call<ChannelJoinAPI> joinChannel(@Query("token") String token, @Query("channel") String id);
 
-    @POST("chat.postMessage")
+    @POST("chat.postMessage") // to send simple messages
     Call<SuccessResponse> sendMessage(@Query("token") String token, @Query("channel") String id, @Query("text") String text);
 
-    @POST("chat.delete")
+    @POST("chat.delete") // to delete messages
     Call<DelMessageAPI> delMessage(@Query("token") String token, @Query("channel") String id, @Query("ts") String ts);
 
-    @POST("chat.scheduleMessage")
+    @POST("chat.scheduleMessage") // to create schedule message
     Call<SuccessResponse> scheduleMessage(@Query("token") String token, @Query("channel") String id, @Query("text") String text, @Query("post_at") String ts);
 
-    @POST("chat.deleteScheduledMessage")
+    @POST("chat.deleteScheduledMessage") // to delete schedule message
     Call<SuccessResponse> delScheduledMessage(@Query("token") String token, @Query("channel") String channel, @Query("scheduled_message_id") String id);
 
-    @POST("chat.scheduledMessages.list")
+    @POST("chat.scheduledMessages.list") // to get the list of scheduled messages of user and bot as per token passed
     Call<ScheduledMessagesAPI> scheduledMessages(@Query("token") String token);
 }

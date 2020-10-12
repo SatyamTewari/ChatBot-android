@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -37,7 +38,7 @@ public class ChannelsAdapter extends RecyclerView.Adapter<ChannelsAdapter.MyView
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         holder.name.setText(list.get(position).getName());
         if(list.get(position).getIsPrivate()){
-            holder.channelPrivate.setText("℗");
+            holder.channelPrivate.setImageResource(R.drawable.private_channel);
         }
     }
 
@@ -48,7 +49,7 @@ public class ChannelsAdapter extends RecyclerView.Adapter<ChannelsAdapter.MyView
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView name;
-        TextView channelPrivate;
+        ImageView channelPrivate;
         MaterialRippleLayout rippleLayout;
 
         public MyViewHolder(@NonNull View itemView) {

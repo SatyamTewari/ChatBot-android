@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.slackchatbot.Activity.MainActivity;
+import com.example.slackchatbot.Activity.MenuActivity;
 import com.example.slackchatbot.Class.ApiRequestClass;
 import com.example.slackchatbot.Models.DMMessagesAPI.Message;
 import com.example.slackchatbot.Models.UserProfileAPI.UserProfileAPI;
@@ -47,10 +47,10 @@ public class DMMessagesAdapter extends RecyclerView.Adapter<DMMessagesAdapter.My
 
         if(list.get(position).getText().startsWith("<@")){
             String user = list.get(position).getText().substring(list.get(position).getText().indexOf("<@") + 2, list.get(position).getText().indexOf(">"));
-            if(MainActivity.usersNames.containsKey(user)){
-                holder.message.setText("@" + MainActivity.usersNames.get(user) + " joined !");
+            if(MenuActivity.usersNames.containsKey(user)){
+                holder.message.setText("@" + MenuActivity.usersNames.get(user) + " joined !");
             }else{
-                Call<UserProfileAPI> callT = retrofitCall.userProfile(MainActivity.BOT_TOKEN,user);
+                Call<UserProfileAPI> callT = retrofitCall.userProfile(MenuActivity.BOT_TOKEN,user);
                 callT.enqueue(new Callback<UserProfileAPI>() {
                     @SuppressLint("SetTextI18n")
                     @Override
@@ -72,10 +72,10 @@ public class DMMessagesAdapter extends RecyclerView.Adapter<DMMessagesAdapter.My
             holder.message.setText(list.get(position).getText());
         }
         holder.time.setText(getDate((long) Double.parseDouble(list.get(position).getTs())));
-        if(MainActivity.usersNames.containsKey(list.get(position).getUser())){
-            holder.name.setText(MainActivity.usersNames.get(list.get(position).getUser()));
+        if(MenuActivity.usersNames.containsKey(list.get(position).getUser())){
+            holder.name.setText(MenuActivity.usersNames.get(list.get(position).getUser()));
         }else{
-            Call<UserProfileAPI> call = retrofitCall.userProfile(MainActivity.BOT_TOKEN,list.get(position).getUser());
+            Call<UserProfileAPI> call = retrofitCall.userProfile(MenuActivity.BOT_TOKEN,list.get(position).getUser());
             call.enqueue(new Callback<UserProfileAPI>() {
                 @Override
                 public void onResponse(Call<UserProfileAPI> call, Response<UserProfileAPI> response) {

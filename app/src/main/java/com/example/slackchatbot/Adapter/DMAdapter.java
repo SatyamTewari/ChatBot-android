@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.balysv.materialripple.MaterialRippleLayout;
 import com.bumptech.glide.Glide;
-import com.example.slackchatbot.Activity.MainActivity;
+import com.example.slackchatbot.Activity.MenuActivity;
 import com.example.slackchatbot.Class.ApiRequestClass;
 import com.example.slackchatbot.Models.ChannelsAPI.Channel;
 import com.example.slackchatbot.Models.UserProfileAPI.UserProfileAPI;
@@ -45,8 +45,7 @@ public class DMAdapter extends RecyclerView.Adapter<DMAdapter.MyViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        holder.prefix.setText("@");
-        Call<UserProfileAPI> call = retrofitCall.userProfile(MainActivity.BOT_TOKEN,list.get(position).getUser());
+        Call<UserProfileAPI> call = retrofitCall.userProfile(MenuActivity.BOT_TOKEN,list.get(position).getUser());
         call.enqueue(new Callback<UserProfileAPI>() {
             @Override
             public void onResponse(Call<UserProfileAPI> call, Response<UserProfileAPI> response) {
@@ -54,7 +53,7 @@ public class DMAdapter extends RecyclerView.Adapter<DMAdapter.MyViewHolder> {
                     holder.name.setText(response.body().getUser().getName());
                     holder.image.setVisibility(View.VISIBLE);
                     holder.prefix.setVisibility(View.GONE);
-                    MainActivity.usersNames.put(list.get(position).getUser(),response.body().getUser().getName());
+                    MenuActivity.usersNames.put(list.get(position).getUser(),response.body().getUser().getName());
                     Glide.with(context).load(response.body().getUser().getProfile().getImage48()).into(holder.image);
                 }else{
                     holder.name.setText(list.get(position).getUser());
@@ -74,8 +73,8 @@ public class DMAdapter extends RecyclerView.Adapter<DMAdapter.MyViewHolder> {
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView name,prefix;
-        ImageView image;
+        TextView name;
+        ImageView image,prefix;
         MaterialRippleLayout ripple;
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);

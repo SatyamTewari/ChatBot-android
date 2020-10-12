@@ -66,8 +66,7 @@
                     android:layout_gravity="center"
                     android:layout_width="29dp"
                     android:layout_height="match_parent"
-                    app:srcCompat="@drawable/ic_timer"
-                    app:tint="#FFFFFF" />
+                    android:src="@drawable/schedule_msg"/>
 
             </com.balysv.materialripple.MaterialRippleLayout>
 
@@ -86,7 +85,7 @@
             android:id="@+id/messages_rv"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/send_message_holder"
+            app:layout_constraintBottom_toTopOf="@id/send_message_holder"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -120,7 +119,7 @@
                 android:visibility="gone"
                 android:layout_gravity="center"
                 android:layout_marginEnd="16dp"
-                android:src="@drawable/ic_bot"
+                android:src="@drawable/send_bot"
                 app:tint="@color/colorPrimaryDark" />
 
             <ImageView
@@ -129,8 +128,7 @@
                 android:layout_height="30dp"
                 android:layout_gravity="center"
                 android:layout_marginEnd="13dp"
-                android:rotation="320"
-                android:src="@drawable/ic_send"
+                android:src="@drawable/send_user"
                 app:tint="@color/colorPrimaryDark" />
 
         </LinearLayout>
