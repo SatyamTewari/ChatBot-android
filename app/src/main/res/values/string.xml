@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="bot_token">xoxb-1397180468276-1427017216852-YAvQLpVPLRJCjOSgOsRzBSiV</string>
-    <string name="user_token">xoxp-1397180468276-1384257892662-1406115609703-4e3f2255db7fe9e036be5f998fd017df</string>
+    <string name="bot_token">xoxb-1397180468276-1427017216852-rkVv9NbLBhztgiVOV0UMkeh1</string>
+    <string name="user_token">xoxp-1397180468276-1384257892662-1421774221715-5764656b1de969933bd2846034e05ce6</string>
     <string name="app_name">ChatBot</string>
     <string name="channels">Channels</string>
     <string name="plus_text">+</string>

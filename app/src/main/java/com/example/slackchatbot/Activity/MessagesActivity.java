@@ -18,7 +18,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -64,7 +63,7 @@ public class MessagesActivity extends AppCompatActivity {
 
     private final String TAG = "MessagesActivity";
 
-    private final String[] SCHEDULES = {"Once", "Daily", "Every 7 days", "Every 10 days", "Every 20 days", "Every 30 days"};
+    private final String[] SCHEDULES = {"Once", "Every 7 days", "Every 30 days"};
 
     OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
@@ -108,7 +107,7 @@ public class MessagesActivity extends AppCompatActivity {
         }
 
         if (type.equals("") || id.equals("")) {
-            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG).show();
+            CustomSnackBar.showSnackBar("Something went wrong",MessagesActivity.this);
             super.onBackPressed();
         }
 
@@ -123,17 +122,12 @@ public class MessagesActivity extends AppCompatActivity {
 
         sendBtn.setOnClickListener(it -> sendMessage());
 
-//        sendBotBtn.setOnClickListener(it -> {
-//            sendAsBot();
-//        });
-
         backBtn.setOnClickListener(it -> super.onBackPressed());
 
         timer.setOnClickListener(it -> {
             Dialog dialog = new Dialog(this);
             View dialogView = LayoutInflater.from(this).inflate(R.layout.schedule_message_dialog, null);
             dialog.setContentView(dialogView);
-            dialog.setCancelable(false);
             Window window = dialog.getWindow();
             assert window != null;
             window.setGravity(Gravity.CENTER);
@@ -205,7 +199,7 @@ public class MessagesActivity extends AppCompatActivity {
                             }
                         });
                     }else{
-                        Toast.makeText(this,"You are not a member of this channel",Toast.LENGTH_LONG).show();
+                        CustomSnackBar.showSnackBar("Permission Denied! Not a member",MessagesActivity.this);
                     }
                 }
             });
@@ -230,7 +224,7 @@ public class MessagesActivity extends AppCompatActivity {
                             }
                         });
                     } else {
-                        Toast.makeText(this, "ChatBot is not a member of this channel", Toast.LENGTH_LONG).show();
+                        CustomSnackBar.showSnackBar("Permission Denied! Chatbot is not a member",MessagesActivity.this);
                     }
                 }
             });
@@ -281,7 +275,7 @@ public class MessagesActivity extends AppCompatActivity {
                     }
                 });
             } else {
-                Toast.makeText(MessagesActivity.this, "You are not a member of this conversation", Toast.LENGTH_LONG).show();
+                Log.e(TAG,"something went wrong");
             }
 
         } else if (!msg.isEmpty()) {
@@ -323,7 +317,7 @@ public class MessagesActivity extends AppCompatActivity {
                     }
                 });
             } else {
-                Toast.makeText(MessagesActivity.this, "ChatBot is not a member of this conversation", Toast.LENGTH_LONG).show();
+                Log.e(TAG,"failed");
             }
         }
     }
@@ -386,7 +380,6 @@ public class MessagesActivity extends AppCompatActivity {
                                         if (response.isSuccessful()) {
                                             loadUserMessages();
                                         } else {
-                                            Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
                                             try {
                                                 Log.e(TAG, response.errorBody().string());
                                             } catch (IOException e) {
@@ -397,7 +390,6 @@ public class MessagesActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onFailure(Call<DelMessageAPI> call, Throwable t) {
-                                        Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
                                         Log.e(TAG, t.getMessage());
                                     }
                                 });
@@ -459,7 +451,6 @@ public class MessagesActivity extends AppCompatActivity {
                                         if (response.isSuccessful()) {
                                             loadUserMessages();
                                         } else {
-                                            Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
                                             try {
                                                 Log.e(TAG, response.errorBody().string());
                                             } catch (IOException e) {
@@ -470,7 +461,6 @@ public class MessagesActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onFailure(Call<DelMessageAPI> call, Throwable t) {
-                                        Toast.makeText(MessagesActivity.this, "Cannot delete this message", Toast.LENGTH_LONG).show();
                                         Log.e(TAG, t.getMessage());
                                     }
                                 });
