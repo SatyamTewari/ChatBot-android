@@ -25,8 +25,8 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.slackchatbot.Adapter.ChannelMessagesAdapter;
-import com.example.slackchatbot.Adapter.DMMessagesAdapter;
+import com.example.slackchatbot.Adapter.ChannelMsgAdapter;
+import com.example.slackchatbot.Adapter.DmMsgAdapter;
 import com.example.slackchatbot.Adapter.ScheduleArrayAdapter;
 import com.example.slackchatbot.Class.ApiRequestClass;
 import com.example.slackchatbot.Class.CustomSnackBar;
@@ -65,9 +65,7 @@ public class MessagesActivity extends AppCompatActivity {
 
     private final String[] SCHEDULES = {"Once", "Every 7 days", "Every 30 days"};
 
-    OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS).build();
+    OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS).writeTimeout(60, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build();
     Retrofit retrofit = new Retrofit.Builder().baseUrl(ApiRequestClass.BASE_URL).client(okHttpClient).addConverterFactory(GsonConverterFactory.create()).build();
     private ApiRequestClass retrofitCall = retrofit.create(ApiRequestClass.class);
 
@@ -75,18 +73,18 @@ public class MessagesActivity extends AppCompatActivity {
     ChannelMessagesAPI channelMessages;
 
     RecyclerView messagesRV;
-    RelativeLayout backBtn, timer;
-    TextView title;
+    RelativeLayout back, scheduler;
+    TextView messagesTitle;
     Dialog dialog;
 
     SharedPreferences prefs;
 
-    ImageView sendBtn, sendBotBtn;
-    EditText typedMessage;
+    ImageView sendButton;
+    EditText msgTOSend;
 
     LinearLayout holder;
 
-    String type = "", id = "", name = "", user = "";
+    String channelOrDm = "", channelOrDm_Id = "", channelOrDm_name = "", channelOrDm_user = ""; //user = "" for channel and user has value for Dms
 
     ChannelInfoAPI userChannelInfo, botChannelInfo;
 
@@ -98,33 +96,32 @@ public class MessagesActivity extends AppCompatActivity {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         Bundle extras = getIntent().getExtras();
         try {
-            type = extras.getString("type", "");
-            id = extras.getString("id", "");
-            name = extras.getString("name", "");
-            user = extras.getString("user", "");
+            channelOrDm = extras.getString("type", "");
+            channelOrDm_Id = extras.getString("id", "");
+            channelOrDm_name = extras.getString("name", "");
+            channelOrDm_user = extras.getString("user", "");
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
 
-        if (type.equals("") || id.equals("")) {
+        if (channelOrDm.equals("") || channelOrDm_Id.equals("")) {
             CustomSnackBar.showSnackBar("Something went wrong",MessagesActivity.this);
             super.onBackPressed();
         }
 
         messagesRV = findViewById(R.id.messages_rv);
-        backBtn = findViewById(R.id.messages_back);
-        title = findViewById(R.id.messages_title);
-        typedMessage = findViewById(R.id.messages_edit_text);
-        sendBtn = findViewById(R.id.messages_send_btn);
+        back = findViewById(R.id.messages_back);
+        messagesTitle = findViewById(R.id.messages_title);
+        msgTOSend = findViewById(R.id.messages_edit_text);
+        sendButton = findViewById(R.id.messages_send_btn);
         holder = findViewById(R.id.send_message_holder);
-        sendBotBtn = findViewById(R.id.messages_send_bot_btn);
-        timer = findViewById(R.id.messages_timer);
+        scheduler = findViewById(R.id.messages_timer);
 
-        sendBtn.setOnClickListener(it -> sendMessage());
+        sendButton.setOnClickListener(it -> sendMsgAsUser());
 
-        backBtn.setOnClickListener(it -> super.onBackPressed());
+        back.setOnClickListener(it -> super.onBackPressed());
 
-        timer.setOnClickListener(it -> {
+        scheduler.setOnClickListener(it -> {
             Dialog dialog = new Dialog(this);
             View dialogView = LayoutInflater.from(this).inflate(R.layout.schedule_message_dialog, null);
             dialog.setContentView(dialogView);
@@ -134,7 +131,7 @@ public class MessagesActivity extends AppCompatActivity {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             window.setBackgroundDrawableResource(android.R.color.transparent);
             int[] selected = {0};
-            EditText msg = dialogView.findViewById(R.id.schedule_message_et);
+            EditText msgToSchedule = dialogView.findViewById(R.id.et_schedule_message);
             CardView chatbot = dialogView.findViewById(R.id.schedule_chatbot);
             CardView user = dialogView.findViewById(R.id.schedule_user);
             Spinner scheduling = dialogView.findViewById(R.id.schedule_channels_spinner);
@@ -179,14 +176,23 @@ public class MessagesActivity extends AppCompatActivity {
                 }
             });
 
+            // setting schedule messages via chatbot
             user.setOnClickListener(d -> {
-                if(!msg.getText().toString().trim().isEmpty()){
+                if(!msgToSchedule.getText().toString().trim().isEmpty()){
                     Long ts = (stringToDate(dateSelected[0] + "-" + dateSelected[1] + "-" + dateSelected[2] + " " + timeSelected[0] + "-" + timeSelected[1]).getTime());
                     if(userChannelInfo.getChannel().getIsMember()){
                         dialog.dismiss();
-                        if(selected[0]==0) {
+                        int n = 0;
+                        int k = 0;
+                        if(selected[0]==0){ n = 0; k = 0; }
+
+                        else if(selected[0]==1){ n = 4; k = 7; }
+
+                        else if(selected[1]==2){ n = 6; k = 30; }
+
+                        for(int i=0; i<n; i++){
                             try {
-                                Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN, id, msg.getText().toString().trim(), String.valueOf(ts / 1000));
+                                Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN, channelOrDm_Id, msgToSchedule.getText().toString().trim(), String.valueOf((ts/1000)+(i*86400*k)));
                                 call.enqueue(new Callback<SuccessResponse>() {
                                     @Override
                                     public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
@@ -204,64 +210,29 @@ public class MessagesActivity extends AppCompatActivity {
                                 Log.e(TAG, "user scheduling exception " + e.getMessage());
                             }
                         }
-                        else if(selected[0]==1) {
-                            for(int i=0; i<4; i++) { //a month - 4 weeks in a month
-                                try {
-                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000) +(i*86400)));
-                                    call.enqueue(new Callback<SuccessResponse>() {
-                                        @Override
-                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                            if (response.isSuccessful()) {
-                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
-                                            Log.e(TAG, "user scheduling failed " + t.getMessage());
-                                        }
-                                    });
-                                } catch (Exception e) {
-                                    Log.e(TAG, "user scheduling exception " + e.getMessage());
-                                }
-                            }
-                        }
-                        else if(selected[0]==2) {
-                            for(int i=0; i<6; i++) { //half year
-                                try {
-                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000) +(i*86400*7)));
-                                    call.enqueue(new Callback<SuccessResponse>() {
-                                        @Override
-                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                            if (response.isSuccessful()) {
-                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
-                                            Log.e(TAG, "user scheduling failed " + t.getMessage());
-                                        }
-                                    });
-                                } catch (Exception e) {
-                                    Log.e(TAG, "user scheduling exception " + e.getMessage());
-                                }
-                            }
-                        }
                     }else{
                         CustomSnackBar.showSnackBar("Permission Denied! Not a member",MessagesActivity.this);
                     }
                 }
             });
 
+            // setting schedule messages via chatbot
             chatbot.setOnClickListener(d -> {
-                if(!msg.getText().toString().trim().isEmpty()) {
+                if(!msgToSchedule.getText().toString().trim().isEmpty()) {
                     Long ts = (stringToDate(dateSelected[0] + "-" + dateSelected[1] + "-" + dateSelected[2] + " " + timeSelected[0] + "-" + timeSelected[1]).getTime());
                     if (botChannelInfo.getChannel().getIsMember()) {
                         dialog.dismiss();
-                        if(selected[0]==0) {
+                        int n = 0;
+                        int k = 0;
+                        if(selected[0]==0){ n = 0; k = 0; }
+
+                        else if(selected[0]==1){ n = 4; k = 7; }
+
+                        else if(selected[1]==2){ n = 6; k = 30; }
+
+                        for(int i=0; i<n; i++){
                             try {
-                                Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf(ts / 1000));
+                                Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, channelOrDm_Id, msgToSchedule.getText().toString().trim(), String.valueOf((ts/1000)+(i*86400*k)));
                                 call.enqueue(new Callback<SuccessResponse>() {
                                     @Override
                                     public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
@@ -279,50 +250,6 @@ public class MessagesActivity extends AppCompatActivity {
                                 Log.e(TAG, "chatbot scheduling exception " + e.getMessage());
                             }
                         }
-                        else if(selected[0]==1) {
-                            for(int i=0; i<4; i++) { //a month - 4 weeks in a month
-                                try {
-                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000)+(i*86400)));
-                                    call.enqueue(new Callback<SuccessResponse>() {
-                                        @Override
-                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                            if (response.isSuccessful()) {
-                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
-                                            Log.e(TAG, "chatbot scheduling failed " + t.getMessage());
-                                        }
-                                    });
-                                } catch (Exception e) {
-                                    Log.e(TAG, "chatbot scheduling exception " + e.getMessage());
-                                }
-                            }
-                        }
-                        else if(selected[0]==2) {
-                            for(int i=0; i<6; i++) { //half year
-                                try {
-                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000)+(i*86400*7)));
-                                    call.enqueue(new Callback<SuccessResponse>() {
-                                        @Override
-                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                            if (response.isSuccessful()) {
-                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
-                                            Log.e(TAG, "chatbot scheduling failed " + t.getMessage());
-                                        }
-                                    });
-                                } catch (Exception e) {
-                                    Log.e(TAG, "chatbot scheduling exception " + e.getMessage());
-                                }
-                            }
-                        }
                     } else {
                         CustomSnackBar.showSnackBar("Permission Denied! Chatbot is not a member",MessagesActivity.this);
                     }
@@ -332,18 +259,18 @@ public class MessagesActivity extends AppCompatActivity {
             dialog.show();
         });
 
-        if (type.equals("channel")) {
-            title.setText(name);
-            timer.setVisibility(View.VISIBLE);
-            loadChannelMessages();
-            loadChannelInfo();
-        } else if(type.equals("dm")) {
-            loadUserInfo();
-            loadUserMessages();
+        if (channelOrDm.equals("channel")) {
+            messagesTitle.setText(channelOrDm_name);
+            scheduler.setVisibility(View.VISIBLE);
+            getChannelMsg();
+            checkMember();
+        } else if(channelOrDm.equals("dm")) {
+            loadDmTitle();
+            getDmMsg();
         } else{
-            title.setText(name);
-            loadChannelMessages();
-            loadChannelInfo();
+            messagesTitle.setText(channelOrDm_name);
+            getChannelMsg();
+            checkMember();
         }
     }
 
@@ -351,18 +278,19 @@ public class MessagesActivity extends AppCompatActivity {
         finish();
     }
 
-    private void sendMessage() {
-        String msg = typedMessage.getText().toString().trim();
-        if (type.equals("channel") && !msg.isEmpty()) {
+    //to send msg as an user
+    private void sendMsgAsUser() {
+        String msg = msgTOSend.getText().toString().trim();
+        if (channelOrDm.equals("channel") && !msg.isEmpty()) {
 
             if (userChannelInfo.getChannel().getIsMember()) {
-                typedMessage.setText("");
-                Call<SuccessResponse> call = retrofitCall.sendMessage(USER_TOKEN, id, msg);
+                msgTOSend.setText("");
+                Call<SuccessResponse> call = retrofitCall.sendMessage(USER_TOKEN, channelOrDm_Id, msg);
                 call.enqueue(new Callback<SuccessResponse>() {
                     @Override
                     public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
                         if (response.isSuccessful()) {
-                            loadChannelMessages();
+                            getChannelMsg();
                         }
                     }
 
@@ -376,13 +304,13 @@ public class MessagesActivity extends AppCompatActivity {
             }
 
         } else if (!msg.isEmpty()) {
-            typedMessage.setText("");
-            Call<SuccessResponse> call = retrofitCall.sendMessage(USER_TOKEN, id, msg);
+            msgTOSend.setText("");
+            Call<SuccessResponse> call = retrofitCall.sendMessage(USER_TOKEN, channelOrDm_Id, msg);
             call.enqueue(new Callback<SuccessResponse>() {
                 @Override
                 public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
                     if (response.isSuccessful()) {
-                        loadUserMessages();
+                        getDmMsg();
                     }
                 }
 
@@ -394,42 +322,18 @@ public class MessagesActivity extends AppCompatActivity {
         }
     }
 
-    private void sendAsBot() {
-        String msg = typedMessage.getText().toString().trim();
-        if (type.equals("channel") && !msg.isEmpty()) {
-            if (botChannelInfo.getChannel().getIsMember()) {
-                typedMessage.setText("");
-                Call<SuccessResponse> call = retrofitCall.sendMessage(BOT_TOKEN, id, msg);
-                call.enqueue(new Callback<SuccessResponse>() {
-                    @Override
-                    public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                        if (response.isSuccessful()) {
-                            loadChannelMessages();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<SuccessResponse> call, Throwable t) {
-
-                    }
-                });
-            } else {
-                Log.e(TAG,"failed");
-            }
-        }
-    }
-
-    private void loadUserInfo() {
+    //load user info to get dm chat title with user name
+    private void loadDmTitle() {
         try {
-            Call<UserProfileAPI> call = retrofitCall.userProfile(BOT_TOKEN, user);
+            Call<UserProfileAPI> call = retrofitCall.userProfile(BOT_TOKEN, channelOrDm_user);
             call.enqueue(new Callback<UserProfileAPI>() {
                 @SuppressLint("SetTextI18n")
                 @Override
                 public void onResponse(Call<UserProfileAPI> call, Response<UserProfileAPI> response) {
                     if (response.isSuccessful()) {
-                        title.setText(response.body().getUser().getName());
+                        messagesTitle.setText(response.body().getUser().getName());
                     } else {
-                        title.setText(id);
+                        messagesTitle.setText(channelOrDm_Id);
                         try {
                             Log.e(TAG, response.errorBody().string());
                         } catch (IOException e) {
@@ -440,7 +344,7 @@ public class MessagesActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<UserProfileAPI> call, Throwable t) {
-                    title.setText(id);
+                    messagesTitle.setText(channelOrDm_Id);
                 }
             });
         }
@@ -449,8 +353,9 @@ public class MessagesActivity extends AppCompatActivity {
         }
     }
 
-    private void loadChannelMessages() {
-        Call<ChannelMessagesAPI> call = retrofitCall.messagesChannel(USER_TOKEN, id);
+    // load all the Channel Messages
+    private void getChannelMsg() {
+        Call<ChannelMessagesAPI> call = retrofitCall.getChannelMsg(USER_TOKEN, channelOrDm_Id);
         call.enqueue(new Callback<ChannelMessagesAPI>() {
             @Override
             public void onResponse(Call<ChannelMessagesAPI> call, Response<ChannelMessagesAPI> response) {
@@ -459,7 +364,7 @@ public class MessagesActivity extends AppCompatActivity {
                     LinearLayoutManager layoutManager = new LinearLayoutManager(MessagesActivity.this);
                     layoutManager.setReverseLayout(true);
                     messagesRV.setLayoutManager(layoutManager);
-                    messagesRV.setAdapter(new ChannelMessagesAdapter(response.body().getMessages(), retrofitCall));
+                    messagesRV.setAdapter(new ChannelMsgAdapter(response.body().getMessages(), retrofitCall));
                     messagesRV.scrollToPosition(0);
                     messagesRV.addOnItemTouchListener(new RecyclerItemClickListener(MessagesActivity.this, messagesRV, new RecyclerItemClickListener.OnItemClickListener() {
                         @Override
@@ -470,12 +375,12 @@ public class MessagesActivity extends AppCompatActivity {
                             CardView yes = dialogView.findViewById(R.id.cv_delete_confirm);
                             CardView cancel = dialogView.findViewById(R.id.cv_delete_denied);
                             yes.setOnClickListener(v -> {
-                                Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, id, channelMessages.getMessages().get(position).getTs());
+                                Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, channelOrDm_Id, channelMessages.getMessages().get(position).getTs());
                                 call.enqueue(new Callback<DelMessageAPI>() {
                                     @Override
                                     public void onResponse(Call<DelMessageAPI> call, Response<DelMessageAPI> response) {
                                         if (response.isSuccessful()) {
-                                            loadUserMessages();
+                                            getDmMsg();
                                         } else {
                                             try {
                                                 Log.e(TAG, response.errorBody().string());
@@ -520,8 +425,9 @@ public class MessagesActivity extends AppCompatActivity {
         });
     }
 
-    private void loadUserMessages() {
-        Call<DMMessagesAPI> call = retrofitCall.messagesUser(USER_TOKEN, id);
+    // load all the Direct Messages
+    private void getDmMsg() {
+        Call<DMMessagesAPI> call = retrofitCall.getDmMsg(USER_TOKEN, channelOrDm_Id);
         call.enqueue(new Callback<DMMessagesAPI>() {
             @Override
             public void onResponse(Call<DMMessagesAPI> call, Response<DMMessagesAPI> response) {
@@ -530,7 +436,7 @@ public class MessagesActivity extends AppCompatActivity {
                     LinearLayoutManager layoutManager = new LinearLayoutManager(MessagesActivity.this);
                     layoutManager.setReverseLayout(true);
                     messagesRV.setLayoutManager(layoutManager);
-                    messagesRV.setAdapter(new DMMessagesAdapter(response.body().getMessages(), retrofitCall));
+                    messagesRV.setAdapter(new DmMsgAdapter(response.body().getMessages(), retrofitCall));
                     messagesRV.scrollToPosition(0);
                     messagesRV.addOnItemTouchListener(new RecyclerItemClickListener(MessagesActivity.this, messagesRV, new RecyclerItemClickListener.OnItemClickListener() {
                         @Override
@@ -541,12 +447,12 @@ public class MessagesActivity extends AppCompatActivity {
                             CardView yes = dialogView.findViewById(R.id.cv_delete_confirm);
                             CardView cancel = dialogView.findViewById(R.id.cv_delete_denied);
                             yes.setOnClickListener(v -> {
-                                Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, id, userMessages.getMessages().get(position).getTs());
+                                Call<DelMessageAPI> call = retrofitCall.delMessage(USER_TOKEN, channelOrDm_Id, userMessages.getMessages().get(position).getTs());
                                 call.enqueue(new Callback<DelMessageAPI>() {
                                     @Override
                                     public void onResponse(Call<DelMessageAPI> call, Response<DelMessageAPI> response) {
                                         if (response.isSuccessful()) {
-                                            loadUserMessages();
+                                            getDmMsg();
                                         } else {
                                             try {
                                                 Log.e(TAG, response.errorBody().string());
@@ -591,32 +497,33 @@ public class MessagesActivity extends AppCompatActivity {
         });
     }
 
-    private void loadChannelInfo() {
-        Call<ChannelInfoAPI> callU = retrofitCall.channelInfo(USER_TOKEN, id);
-        Call<ChannelInfoAPI> callB = retrofitCall.channelInfo(BOT_TOKEN, id);
-        callU.enqueue(new Callback<ChannelInfoAPI>() {
+    // to check if user and chatbot both are member of the specific public channel
+    private void checkMember() {
+        Call<ChannelInfoAPI> checkUserMember = retrofitCall.checkMember(USER_TOKEN, channelOrDm_Id);
+        Call<ChannelInfoAPI> checkBotMember = retrofitCall.checkMember(BOT_TOKEN, channelOrDm_Id);
+        checkUserMember.enqueue(new Callback<ChannelInfoAPI>() {
             @Override
             public void onResponse(Call<ChannelInfoAPI> call, Response<ChannelInfoAPI> response) {
                 if (response.isSuccessful()) {
                     userChannelInfo = response.body();
-                    callB.enqueue(new Callback<ChannelInfoAPI>() {
+                    checkBotMember.enqueue(new Callback<ChannelInfoAPI>() {
                         @Override
                         public void onResponse(Call<ChannelInfoAPI> call, Response<ChannelInfoAPI> response) {
                             if (response.isSuccessful()) {
                                 botChannelInfo = response.body();
                                 if(userChannelInfo.getChannel().getIsChannel() && botChannelInfo.getChannel().getIsChannel()){
-                                    if (!userChannelInfo.getChannel().getIsMember() || !botChannelInfo.getChannel().getIsMember()) {
+                                    if (!userChannelInfo.getChannel().getIsMember() || !botChannelInfo.getChannel().getIsMember()) { //if either bot or user are not part of this channel then ask for join
                                         dialog = new Dialog(MessagesActivity.this);
                                         View dialogView = LayoutInflater.from(MessagesActivity.this).inflate(R.layout.add_bot_user_dialog,null);
                                         dialog.setContentView(dialogView);
                                         CardView user = dialogView.findViewById(R.id.cv_user);
                                         CardView bot = dialogView.findViewById(R.id.cv_chatbot);
                                         user.setOnClickListener(view -> {
-                                            joinChannel(USER_TOKEN,id);
+                                            addChannelMember(USER_TOKEN, channelOrDm_Id);
                                             dialog.dismiss();
                                         });
                                         bot.setOnClickListener(view -> {
-                                            joinChannel(BOT_TOKEN,id);
+                                            addChannelMember(BOT_TOKEN, channelOrDm_Id);
                                             dialog.dismiss();
                                         });
                                         dialog.show();
@@ -652,14 +559,15 @@ public class MessagesActivity extends AppCompatActivity {
         });
     }
 
-    private void joinChannel(String token, String channel) {
-        Call<ChannelJoinAPI> call = retrofitCall.joinChannel(token, channel);
+    //adding user or chatbot to the channel
+    private void addChannelMember(String token, String channel) {
+        Call<ChannelJoinAPI> call = retrofitCall.addChannelMember(token, channel);
         call.enqueue(new Callback<ChannelJoinAPI>() {
             @Override
             public void onResponse(Call<ChannelJoinAPI> call, Response<ChannelJoinAPI> response) {
                 if (response.isSuccessful()) {
-                    loadChannelMessages();
-                    loadChannelInfo();
+                    getChannelMsg();
+                    checkMember();
                 } else {
                     try {
                         Log.e(TAG, response.errorBody().string());
@@ -692,6 +600,5 @@ public class MessagesActivity extends AppCompatActivity {
         ParsePosition pos = new ParsePosition(0);
         SimpleDateFormat simpledateformat = new SimpleDateFormat("dd-MM-yyyy HH-mm", Locale.ENGLISH);
         return simpledateformat.parse(aDate, pos);
-
     }
 }

@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.slackchatbot.Activity.MenuActivity;
 import com.example.slackchatbot.Class.ApiRequestClass;
-import com.example.slackchatbot.Models.DMMessagesAPI.Message;
+import com.example.slackchatbot.Models.ChannelMessagesAPI.Message;
 import com.example.slackchatbot.Models.UserProfileAPI.UserProfileAPI;
 import com.example.slackchatbot.R;
 
@@ -24,12 +24,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DMMessagesAdapter extends RecyclerView.Adapter<DMMessagesAdapter.MyViewHolder> {
+public class ChannelMsgAdapter extends RecyclerView.Adapter<ChannelMsgAdapter.MyViewHolder> {
 
     List<Message> list;
     ApiRequestClass retrofitCall;
 
-    public DMMessagesAdapter(List<Message> data,ApiRequestClass call){
+    public ChannelMsgAdapter(List<Message> data, ApiRequestClass call){
         this.list = data;
         this.retrofitCall = call;
     }
@@ -44,11 +44,10 @@ public class DMMessagesAdapter extends RecyclerView.Adapter<DMMessagesAdapter.My
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-
         if(list.get(position).getText().startsWith("<@")){
             String user = list.get(position).getText().substring(list.get(position).getText().indexOf("<@") + 2, list.get(position).getText().indexOf(">"));
             if(MenuActivity.usersNames.containsKey(user)){
-                holder.message.setText("@" + MenuActivity.usersNames.get(user) + " joined !");
+                holder.message.setText("@" + MenuActivity.usersNames.get(user) + " joined !!");
             }else{
                 Call<UserProfileAPI> callT = retrofitCall.userProfile(MenuActivity.BOT_TOKEN,user);
                 callT.enqueue(new Callback<UserProfileAPI>() {
@@ -56,7 +55,7 @@ public class DMMessagesAdapter extends RecyclerView.Adapter<DMMessagesAdapter.My
                     @Override
                     public void onResponse(Call<UserProfileAPI> call, Response<UserProfileAPI> response) {
                         if(response.isSuccessful()){
-                            holder.message.setText("@" + response.body().getUser().getName() + " joined via your invite link!");
+                            holder.message.setText("@" + response.body().getUser().getName() + " joined !!");
                         }else{
                             holder.message.setText("New User joined");
                         }

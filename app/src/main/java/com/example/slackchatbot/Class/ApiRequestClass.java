@@ -23,19 +23,19 @@ public interface ApiRequestClass {
     public static String BASE_URL = "https://slack.com/api/";
 
     @GET("conversations.list") //get all channels list
-    Call<ChannelsAPI> channels(@Query("token") String token, @QueryMap Map<String, String> query);
+    Call<ChannelsAPI> getChannelAndDmList(@Query("token") String token, @QueryMap Map<String, String> query);
     @GET("conversations.history") //to get all the conversations on a particular channel
-    Call<ChannelMessagesAPI> messagesChannel(@Query("token") String token, @Query("channel") String id);
+    Call<ChannelMessagesAPI> getChannelMsg(@Query("token") String token, @Query("channel") String id);
     @GET("conversations.history") //to get all the conversations from a particular dm
-    Call<DMMessagesAPI> messagesUser(@Query("token") String token, @Query("channel") String id);
+    Call<DMMessagesAPI> getDmMsg(@Query("token") String token, @Query("channel") String id);
     @POST("conversations.create") //create channel
     Call<SuccessResponse> createChannel(@Query("token") String token, @Query("name") String name, @Query("is_private") String is_private);
     @GET("users.info") //for user info of all dm
     Call<UserProfileAPI> userProfile(@Query("token") String token, @Query("user") String id);
     @GET("conversations.info") //to get channel info like channel name, public/private, etc
-    Call<ChannelInfoAPI> channelInfo(@Query("token") String token, @Query("channel") String id);
-    @POST("conversations.join") // to join channel
-    Call<ChannelJoinAPI> joinChannel(@Query("token") String token, @Query("channel") String id);
+    Call<ChannelInfoAPI> checkMember(@Query("token") String token, @Query("channel") String id);
+    @POST("conversations.join") // to join channel as bot or user
+    Call<ChannelJoinAPI> addChannelMember(@Query("token") String token, @Query("channel") String id);
     @POST("chat.postMessage") // to send simple messages
     Call<SuccessResponse> sendMessage(@Query("token") String token, @Query("channel") String id, @Query("text") String text);
     @POST("chat.delete") // to delete messages

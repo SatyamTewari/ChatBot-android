@@ -23,13 +23,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DMAdapter extends RecyclerView.Adapter<DMAdapter.MyViewHolder> {
+public class DmListAdapter extends RecyclerView.Adapter<DmListAdapter.MyViewHolder> {
 
     List<Channel> list;
     Context context;
     ApiRequestClass retrofitCall;
 
-    public DMAdapter(List<Channel> listData,Context context,ApiRequestClass call){
+    public DmListAdapter(List<Channel> listData, Context context, ApiRequestClass call){
         this.list = listData;
         this.context = context;
         this.retrofitCall = call;

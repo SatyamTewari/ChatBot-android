@@ -10,20 +10,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.slackchatbot.Adapter.ChannelsAdapter;
-import com.example.slackchatbot.Adapter.DMAdapter;
+import com.example.slackchatbot.Adapter.ChannelListAdapter;
+import com.example.slackchatbot.Adapter.DmListAdapter;
 import com.example.slackchatbot.Adapter.ScheduledMessagesAdapter;
 import com.example.slackchatbot.Class.ApiRequestClass;
 import com.example.slackchatbot.Class.CustomSnackBar;
@@ -60,11 +59,9 @@ public class MenuActivity extends AppCompatActivity {
 
     boolean doubleBackToExitPressedOnce = false;
 
-    CardView addChannel;
+    TextView addChannel;
 
-    OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS).build();
+    OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS).writeTimeout(60, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build();
     Retrofit retrofit = new Retrofit.Builder().baseUrl(ApiRequestClass.BASE_URL).client(okHttpClient).addConverterFactory(GsonConverterFactory.create()).build();
     private ApiRequestClass retrofitCall = retrofit.create(ApiRequestClass.class);
 
@@ -83,7 +80,7 @@ public class MenuActivity extends AppCompatActivity {
             Log.e(TAG,e.getMessage());
         }
 
-        addChannel = findViewById(R.id.main_channel_add);
+        addChannel = findViewById(R.id.tv_add_channel);
         channelsRecyclerView = findViewById(R.id.main_channels_rv);
         messagesRecyclerView = findViewById(R.id.main_dm_rv);
         scheduledUser = findViewById(R.id.main_sch_user_rv);
@@ -100,6 +97,7 @@ public class MenuActivity extends AppCompatActivity {
         scheduledBot.setLayoutManager(new LinearLayoutManager(this));
 
 
+        // add channel click action and open add channel dialog
         addChannel.setOnClickListener(it -> {
             Dialog dialog = new Dialog(this);
             View dialogView = LayoutInflater.from(this).inflate(R.layout.add_channel_dialog, null);
@@ -116,6 +114,7 @@ public class MenuActivity extends AppCompatActivity {
 
             close.setOnClickListener(d -> dialog.dismiss());
 
+            // initiating private channel create click action
             private_channel.setOnClickListener(d -> {
                 if(channelName.getText().toString().split(" ").length > 1){
                     CustomSnackBar.showSnackBar("Channel name cannot contain space", MenuActivity.this);
@@ -128,7 +127,7 @@ public class MenuActivity extends AppCompatActivity {
                             @Override
                             public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
                                 if (response.isSuccessful()) {
-                                    loadChannels();
+                                    getChannelsAndDmList("channel");
                                 }
                             }
 
@@ -144,6 +143,7 @@ public class MenuActivity extends AppCompatActivity {
                 }
             });
 
+            // initiating public channel create click action
             public_channel.setOnClickListener(d -> {
                 if(channelName.getText().toString().split(" ").length > 1){
                     CustomSnackBar.showSnackBar("Channel name cannot contain space", MenuActivity.this);
@@ -156,7 +156,7 @@ public class MenuActivity extends AppCompatActivity {
                             @Override
                             public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
                                 if (response.isSuccessful()) {
-                                    loadChannels();
+                                    getChannelsAndDmList("channel");
                                 }
                             }
 
@@ -173,12 +173,6 @@ public class MenuActivity extends AppCompatActivity {
             });
             dialog.show();
         });
-
-
-        loadChannels();
-        loadMessages();
-        loadScheduledMsg("user");
-        loadScheduledMsg("bot");
     }
 
     public void onBackPressed() {
@@ -196,48 +190,88 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadChannels();
-        loadMessages();
-        loadScheduledMsg("user");
-        loadScheduledMsg("bot");
+        getChannelsAndDmList("channel");
+        getChannelsAndDmList("dm");
+        getScheduledMsg("user");
+        getScheduledMsg("bot");
     }
 
-    private void loadChannels() {
-        channelsProgressBar.setVisibility(View.VISIBLE);
-        channelsRecyclerView.setVisibility(View.GONE);
+    // load the channel and Dm list
+    private void getChannelsAndDmList(String channelOrDm) {
         Map<String, String> data = new HashMap<>();
-        data.put("types", "public_channel,private_channel");
+        if(channelOrDm.equals("channel")){
+            channelsProgressBar.setVisibility(View.VISIBLE);
+            channelsRecyclerView.setVisibility(View.GONE);
+            data.put("types", "public_channel,private_channel");
+        }
+        else{
+            messagesProgressBar.setVisibility(View.VISIBLE);
+            messagesRecyclerView.setVisibility(View.GONE);
+            data.put("types", "mpim,im");
+        }
         try {
-            Call<ChannelsAPI> call = retrofitCall.channels(USER_TOKEN, data);
+            Call<ChannelsAPI> call = retrofitCall.getChannelAndDmList(USER_TOKEN, data);
             call.enqueue(new Callback<ChannelsAPI>() {
                 @Override
                 public void onResponse(Call<ChannelsAPI> call, Response<ChannelsAPI> response) {
                     channelsProgressBar.setVisibility(View.GONE);
-                    channelsRecyclerView.setVisibility(View.VISIBLE);
-                    if (response.isSuccessful()) {
-                        channelsData = response.body();
-                        channelsRecyclerView.setAdapter(new ChannelsAdapter(channelsData.getChannels(), MenuActivity.this));
-                        channelsRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(MenuActivity.this, channelsRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(View view, int position) {
-                                Intent intent = new Intent(MenuActivity.this, MessagesActivity.class);
-                                intent.putExtra("type", channelsData.getChannels().get(position).getIsChannel() ? "channel" : "group");
-                                intent.putExtra("id", channelsData.getChannels().get(position).getId());
-                                intent.putExtra("name", channelsData.getChannels().get(position).getName());
-                                intent.putExtra("user", "");
-                                startActivity(intent);
-                            }
+                    messagesProgressBar.setVisibility(View.GONE);
+                    if(channelOrDm.equals("channel")) {
+                        channelsRecyclerView.setVisibility(View.VISIBLE);
+                        if (response.isSuccessful()) {
+                            channelsData = response.body();
+                            channelsRecyclerView.setAdapter(new ChannelListAdapter(channelsData.getChannels(), MenuActivity.this));
+                            channelsRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(MenuActivity.this, channelsRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+                                @Override
+                                public void onItemClick(View view, int position) {
+                                    Intent intent = new Intent(MenuActivity.this, MessagesActivity.class);
+                                    intent.putExtra("type", channelsData.getChannels().get(position).getIsChannel() ? "channel" : "group");
+                                    intent.putExtra("id", channelsData.getChannels().get(position).getId());
+                                    intent.putExtra("name", channelsData.getChannels().get(position).getName());
+                                    intent.putExtra("user", "");
+                                    startActivity(intent);
+                                }
 
-                            @Override
-                            public void onLongItemClick(View view, int position) {
-
+                                @Override
+                                public void onLongItemClick(View view, int position) {
+                                    //blank for future use
+                                }
+                            }));
+                        } else {
+                            try {
+                                Log.e(TAG, response.errorBody().string());
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
-                        }));
-                    } else {
-                        try {
-                            Log.e(TAG, response.errorBody().string());
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        }
+                    }
+                    else{
+                        messagesRecyclerView.setVisibility(View.VISIBLE);
+                        if (response.isSuccessful()) {
+                            messagesData = response.body();
+                            messagesRecyclerView.setAdapter(new DmListAdapter(messagesData.getChannels(), MenuActivity.this, retrofitCall));
+                            messagesRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(MenuActivity.this, messagesRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+                                @Override
+                                public void onItemClick(View view, int position) {
+                                    Intent intent = new Intent(MenuActivity.this, MessagesActivity.class);
+                                    intent.putExtra("type", "dm");
+                                    intent.putExtra("id", messagesData.getChannels().get(position).getId());
+                                    intent.putExtra("name", "");
+                                    intent.putExtra("user", messagesData.getChannels().get(position).getUser());
+                                    startActivity(intent);
+                                }
+
+                                @Override
+                                public void onLongItemClick(View view, int position) {
+                                    // blank for future use
+                                }
+                            }));
+                        } else {
+                            try {
+                                Log.e(TAG, response.errorBody().string());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -246,72 +280,21 @@ public class MenuActivity extends AppCompatActivity {
                 public void onFailure(Call<ChannelsAPI> call, Throwable t) {
                     Log.e(TAG, t.getMessage());
                     channelsProgressBar.setVisibility(View.GONE);
+                    messagesProgressBar.setVisibility(View.GONE);
                 }
             });
         }
         catch (Exception e){
             Log.e(TAG,"loadChannelsData exception: "+e.getMessage());
             channelsProgressBar.setVisibility(View.GONE);
-        }
-    }
-
-    private void loadMessages() {
-        try {
-            messagesProgressBar.setVisibility(View.VISIBLE);
-            messagesRecyclerView.setVisibility(View.GONE);
-            Map<String, String> data = new HashMap<>();
-            data.put("types", "mpim,im");
-            Call<ChannelsAPI> call = retrofitCall.channels(USER_TOKEN, data);
-            call.enqueue(new Callback<ChannelsAPI>() {
-                @Override
-                public void onResponse(Call<ChannelsAPI> call, Response<ChannelsAPI> response) {
-                    messagesProgressBar.setVisibility(View.GONE);
-                    messagesRecyclerView.setVisibility(View.VISIBLE);
-                    if (response.isSuccessful()) {
-                        messagesData = response.body();
-                        messagesRecyclerView.setAdapter(new DMAdapter(messagesData.getChannels(), MenuActivity.this, retrofitCall));
-                        messagesRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(MenuActivity.this, messagesRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(View view, int position) {
-                                Intent intent = new Intent(MenuActivity.this, MessagesActivity.class);
-                                intent.putExtra("type", "dm");
-                                intent.putExtra("id", messagesData.getChannels().get(position).getId());
-                                intent.putExtra("name", "");
-                                intent.putExtra("user", messagesData.getChannels().get(position).getUser());
-                                startActivity(intent);
-                            }
-
-                            @Override
-                            public void onLongItemClick(View view, int position) {
-
-                            }
-                        }));
-                    } else {
-                        try {
-                            Log.e(TAG, response.errorBody().string());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<ChannelsAPI> call, Throwable t) {
-                    Log.e(TAG, t.getMessage());
-                    messagesProgressBar.setVisibility(View.GONE);
-                }
-            });
-        }
-        catch (Exception e){
-            Log.e(TAG,"loadMessagesData exception: "+e.getMessage());
             messagesProgressBar.setVisibility(View.GONE);
         }
     }
 
-    private void loadScheduledMsg(String userType){
+    // load the schedule Msg list for user and chatbot
+    private void getScheduledMsg(String userType){
         try {
             Call<ScheduledMessagesAPI> call;
-
             if(userType.equals("user")) {
                 scheduledUser.setVisibility(View.GONE);
                 scheduledUserProgressBar.setVisibility(View.VISIBLE);

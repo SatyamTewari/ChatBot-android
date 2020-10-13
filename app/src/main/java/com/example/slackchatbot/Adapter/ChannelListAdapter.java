@@ -16,12 +16,12 @@ import com.example.slackchatbot.R;
 import java.util.List;
 
 
-public class ChannelsAdapter extends RecyclerView.Adapter<ChannelsAdapter.MyViewHolder> {
+public class ChannelListAdapter extends RecyclerView.Adapter<ChannelListAdapter.MyViewHolder> {
 
     List<Channel> list;
     Context context;
 
-    public ChannelsAdapter(List<Channel> listData, Context context) {
+    public ChannelListAdapter(List<Channel> listData, Context context) {
         this.list = listData;
         this.context = context;
     }
