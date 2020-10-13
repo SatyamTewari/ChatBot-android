@@ -35,40 +35,24 @@
                 
             </LinearLayout>
 
-            <EditText
-                android:layout_marginTop="16dp"
-                android:id="@+id/et_schedule_message"
-                android:hint="@string/type_message_here"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <LinearLayout
-                android:layout_marginTop="13dp"
-                android:orientation="horizontal"
+            <RelativeLayout
+                android:layout_marginTop="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:text="@string/scheduling"
+                    android:text="@string/choose_date_and_time"
                     android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:layout_gravity="center"
-                    android:layout_marginEnd="13dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"/>
 
-                <Spinner
-                    android:id="@+id/schedule_channels_spinner"
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:background="#EFEFEF"
-                    android:layout_height="wrap_content"/>
-
-            </LinearLayout>
+            </RelativeLayout>
 
             <LinearLayout
-                android:layout_marginTop="13dp"
+                android:layout_marginTop="20dp"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -86,15 +70,8 @@
                     android:id="@+id/schedule_date"
                     android:textColor="@color/black"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_marginTop="13dp"
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
 
                 <TextView
                     android:text="@string/time"
@@ -109,9 +86,42 @@
                     android:id="@+id/schedule_time"
                     android:textColor="@color/black"
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="@string/repeat"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="13dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <Spinner
+                    android:id="@+id/schedule_channels_spinner"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:background="#EFEFEF"
                     android:layout_height="wrap_content"/>
 
             </LinearLayout>
+
+            <EditText
+                android:layout_marginTop="16dp"
+                android:id="@+id/et_schedule_message"
+                android:hint="@string/type_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
             <RelativeLayout
                 android:layout_marginTop="13dp"

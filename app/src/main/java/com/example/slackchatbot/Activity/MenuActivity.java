@@ -24,7 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.slackchatbot.Adapter.ChannelListAdapter;
 import com.example.slackchatbot.Adapter.DmListAdapter;
 import com.example.slackchatbot.Adapter.ScheduledMessagesAdapter;
-import com.example.slackchatbot.Class.ApiRequestClass;
+import com.example.slackchatbot.Class.SlackApiClass;
 import com.example.slackchatbot.Class.CustomSnackBar;
 import com.example.slackchatbot.Class.RecyclerItemClickListener;
 import com.example.slackchatbot.Models.ChannelsAPI.ChannelsAPI;
@@ -62,13 +62,13 @@ public class MenuActivity extends AppCompatActivity {
     TextView addChannel;
 
     OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS).writeTimeout(60, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build();
-    Retrofit retrofit = new Retrofit.Builder().baseUrl(ApiRequestClass.BASE_URL).client(okHttpClient).addConverterFactory(GsonConverterFactory.create()).build();
-    private ApiRequestClass retrofitCall = retrofit.create(ApiRequestClass.class);
+    Retrofit retrofit = new Retrofit.Builder().baseUrl(SlackApiClass.BASE_URL).client(okHttpClient).addConverterFactory(GsonConverterFactory.create()).build();
+    private SlackApiClass retrofitCall = retrofit.create(SlackApiClass.class);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_menu);
         Toolbar toolbar = findViewById(R.id.toolbar);
         BOT_TOKEN = getString(R.string.bot_token);
         USER_TOKEN = getString(R.string.user_token);
@@ -100,7 +100,7 @@ public class MenuActivity extends AppCompatActivity {
         // add channel click action and open add channel dialog
         addChannel.setOnClickListener(it -> {
             Dialog dialog = new Dialog(this);
-            View dialogView = LayoutInflater.from(this).inflate(R.layout.add_channel_dialog, null);
+            View dialogView = LayoutInflater.from(this).inflate(R.layout.add_channel_popup, null);
             dialog.setContentView(dialogView);
             Window window = dialog.getWindow();
             assert window != null;

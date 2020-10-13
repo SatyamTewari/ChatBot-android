@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.slackchatbot.Activity.MenuActivity;
-import com.example.slackchatbot.Class.ApiRequestClass;
+import com.example.slackchatbot.Class.SlackApiClass;
 import com.example.slackchatbot.Models.ChannelsAPI.Channel;
 import com.example.slackchatbot.Models.UserProfileAPI.UserProfileAPI;
 import com.example.slackchatbot.R;
@@ -27,9 +27,9 @@ public class DmListAdapter extends RecyclerView.Adapter<DmListAdapter.MyViewHold
 
     List<Channel> list;
     Context context;
-    ApiRequestClass retrofitCall;
+    SlackApiClass retrofitCall;
 
-    public DmListAdapter(List<Channel> listData, Context context, ApiRequestClass call){
+    public DmListAdapter(List<Channel> listData, Context context, SlackApiClass call){
         this.list = listData;
         this.context = context;
         this.retrofitCall = call;
@@ -38,7 +38,7 @@ public class DmListAdapter extends RecyclerView.Adapter<DmListAdapter.MyViewHold
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.channels_adapter_layout,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.channel_list_adapter_layout,parent,false);
         return new MyViewHolder((view));
     }
 

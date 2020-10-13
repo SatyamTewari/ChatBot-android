@@ -18,7 +18,7 @@ import retrofit2.http.POST;
 import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
-public interface ApiRequestClass {
+public interface SlackApiClass {
 
     public static String BASE_URL = "https://slack.com/api/";
 

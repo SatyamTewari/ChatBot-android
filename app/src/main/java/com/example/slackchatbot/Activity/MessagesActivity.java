@@ -28,7 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.slackchatbot.Adapter.ChannelMsgAdapter;
 import com.example.slackchatbot.Adapter.DmMsgAdapter;
 import com.example.slackchatbot.Adapter.ScheduleArrayAdapter;
-import com.example.slackchatbot.Class.ApiRequestClass;
+import com.example.slackchatbot.Class.SlackApiClass;
 import com.example.slackchatbot.Class.CustomSnackBar;
 import com.example.slackchatbot.Class.RecyclerItemClickListener;
 import com.example.slackchatbot.Models.ChannelInfoAPI.ChannelInfoAPI;
@@ -63,11 +63,11 @@ public class MessagesActivity extends AppCompatActivity {
 
     private final String TAG = "MessagesActivity";
 
-    private final String[] SCHEDULES = {"Once", "Every 7 days", "Every 30 days"};
+    private final String[] SCHEDULES = {"Once", "weekly", "monthly"};
 
     OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS).writeTimeout(60, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build();
-    Retrofit retrofit = new Retrofit.Builder().baseUrl(ApiRequestClass.BASE_URL).client(okHttpClient).addConverterFactory(GsonConverterFactory.create()).build();
-    private ApiRequestClass retrofitCall = retrofit.create(ApiRequestClass.class);
+    Retrofit retrofit = new Retrofit.Builder().baseUrl(SlackApiClass.BASE_URL).client(okHttpClient).addConverterFactory(GsonConverterFactory.create()).build();
+    private SlackApiClass retrofitCall = retrofit.create(SlackApiClass.class);
 
     DMMessagesAPI userMessages;
     ChannelMessagesAPI channelMessages;
@@ -123,14 +123,14 @@ public class MessagesActivity extends AppCompatActivity {
 
         scheduler.setOnClickListener(it -> {
             Dialog dialog = new Dialog(this);
-            View dialogView = LayoutInflater.from(this).inflate(R.layout.schedule_message_dialog, null);
+            View dialogView = LayoutInflater.from(this).inflate(R.layout.schedule_msg_popup, null);
             dialog.setContentView(dialogView);
             Window window = dialog.getWindow();
             assert window != null;
             window.setGravity(Gravity.CENTER);
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             window.setBackgroundDrawableResource(android.R.color.transparent);
-            int[] selected = {0};
+            int[] repeatSchedule = {0}; // used array instead of int because it is being accessed from inner class
             EditText msgToSchedule = dialogView.findViewById(R.id.et_schedule_message);
             CardView chatbot = dialogView.findViewById(R.id.schedule_chatbot);
             CardView user = dialogView.findViewById(R.id.schedule_user);
@@ -167,12 +167,12 @@ public class MessagesActivity extends AppCompatActivity {
             scheduling.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    selected[0] = i;
+                    repeatSchedule[0] = i;
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView) {
-
+                    // blank for future
                 }
             });
 
@@ -184,11 +184,11 @@ public class MessagesActivity extends AppCompatActivity {
                         dialog.dismiss();
                         int n = 0;
                         int k = 0;
-                        if(selected[0]==0){ n = 0; k = 0; }
+                        if(repeatSchedule[0]==0){ n = 1; k = 0; }
 
-                        else if(selected[0]==1){ n = 4; k = 7; }
+                        else if(repeatSchedule[0]==1){ n = 4; k = 7; }
 
-                        else if(selected[1]==2){ n = 6; k = 30; }
+                        else if(repeatSchedule[0]==2){ n = 6; k = 30; }
 
                         for(int i=0; i<n; i++){
                             try {
@@ -224,11 +224,11 @@ public class MessagesActivity extends AppCompatActivity {
                         dialog.dismiss();
                         int n = 0;
                         int k = 0;
-                        if(selected[0]==0){ n = 0; k = 0; }
+                        if(repeatSchedule[0]==0){ n = 1; k = 0; }
 
-                        else if(selected[0]==1){ n = 4; k = 7; }
+                        else if(repeatSchedule[0]==1){ n = 4; k = 7; }
 
-                        else if(selected[1]==2){ n = 6; k = 30; }
+                        else if(repeatSchedule[0]==2){ n = 6; k = 30; }
 
                         for(int i=0; i<n; i++){
                             try {
@@ -514,7 +514,7 @@ public class MessagesActivity extends AppCompatActivity {
                                 if(userChannelInfo.getChannel().getIsChannel() && botChannelInfo.getChannel().getIsChannel()){
                                     if (!userChannelInfo.getChannel().getIsMember() || !botChannelInfo.getChannel().getIsMember()) { //if either bot or user are not part of this channel then ask for join
                                         dialog = new Dialog(MessagesActivity.this);
-                                        View dialogView = LayoutInflater.from(MessagesActivity.this).inflate(R.layout.add_bot_user_dialog,null);
+                                        View dialogView = LayoutInflater.from(MessagesActivity.this).inflate(R.layout.add_member_popup,null);
                                         dialog.setContentView(dialogView);
                                         CardView user = dialogView.findViewById(R.id.cv_user);
                                         CardView bot = dialogView.findViewById(R.id.cv_chatbot);

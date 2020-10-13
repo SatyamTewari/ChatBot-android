@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.slackchatbot.Activity.MenuActivity;
-import com.example.slackchatbot.Class.ApiRequestClass;
+import com.example.slackchatbot.Class.SlackApiClass;
 import com.example.slackchatbot.Models.DMMessagesAPI.Message;
 import com.example.slackchatbot.Models.UserProfileAPI.UserProfileAPI;
 import com.example.slackchatbot.R;
@@ -27,9 +27,9 @@ import retrofit2.Response;
 public class DmMsgAdapter extends RecyclerView.Adapter<DmMsgAdapter.MyViewHolder> {
 
     List<Message> list;
-    ApiRequestClass retrofitCall;
+    SlackApiClass retrofitCall;
 
-    public DmMsgAdapter(List<Message> data, ApiRequestClass call){
+    public DmMsgAdapter(List<Message> data, SlackApiClass call){
         this.list = data;
         this.retrofitCall = call;
     }
