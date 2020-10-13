@@ -42,8 +42,8 @@ public interface ApiRequestClass {
     Call<DelMessageAPI> delMessage(@Query("token") String token, @Query("channel") String id, @Query("ts") String ts);
     @POST("chat.scheduleMessage") // to create schedule message
     Call<SuccessResponse> scheduleMessage(@Query("token") String token, @Query("channel") String id, @Query("text") String text, @Query("post_at") String ts);
-    @POST("chat.deleteScheduledMessage") // to delete schedule message
-    Call<SuccessResponse> delScheduledMessage(@Query("token") String token, @Query("channel") String channel, @Query("scheduled_message_id") String id);
+//    @POST("chat.deleteScheduledMessage") // to delete schedule message
+//    Call<SuccessResponse> delScheduledMessage(@Query("token") String token, @Query("channel") String channel, @Query("scheduled_message_id") String id);
     @POST("chat.scheduledMessages.list") // to get the list of scheduled messages of user and bot as per token passed
     Call<ScheduledMessagesAPI> scheduledMessages(@Query("token") String token);
 }

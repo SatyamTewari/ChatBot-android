@@ -51,48 +51,56 @@
                 android:layout_height="wrap_content"/>
 
             <LinearLayout
-                android:layout_marginTop="13dp"
-                android:gravity="center"
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:textColor="@color/black"
-                    android:text="@string/public_channel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/add_channel_channel_type_switch"
-                    android:layout_marginHorizontal="13dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <TextView
-                    android:textColor="@color/black"
-                    android:text="@string/private_channel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-            </LinearLayout>
-
-            <LinearLayout
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:weightSum="2">
 
-                <Button
-                    android:layout_marginTop="16dp"
-                    android:textAllCaps="true"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:text="@string/create"
-                    android:background="@color/colorAccent"
-                    android:id="@+id/add_channel_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/private_channel"
+                    android:layout_marginHorizontal="5dp"
+                    android:layout_marginBottom="5dp"
+                    app:cardElevation="5dp"
+                    app:cardCornerRadius="5dp"
+                    app:cardBackgroundColor="@color/colorAccent"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1">
 
+                    <TextView
+                        android:layout_gravity="center"
+                        android:textAlignment="center"
+                        android:text="@string/private_channel"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/public_channel"
+                    android:layout_marginHorizontal="5dp"
+                    android:layout_marginBottom="5dp"
+                    app:cardElevation="5dp"
+                    app:cardCornerRadius="5dp"
+                    app:cardBackgroundColor="@color/colorAccent"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:layout_gravity="center"
+                        android:textAlignment="center"
+                        android:text="@string/public_channel"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                </androidx.cardview.widget.CardView>
 
             </LinearLayout>
 

@@ -184,20 +184,70 @@ public class MessagesActivity extends AppCompatActivity {
                     Long ts = (stringToDate(dateSelected[0] + "-" + dateSelected[1] + "-" + dateSelected[2] + " " + timeSelected[0] + "-" + timeSelected[1]).getTime());
                     if(userChannelInfo.getChannel().getIsMember()){
                         dialog.dismiss();
-                        Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN,id,msg.getText().toString().trim(),String.valueOf(ts/1000));
-                        call.enqueue(new Callback<SuccessResponse>() {
-                            @Override
-                            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                if(response.isSuccessful()){
-                                    CustomSnackBar.showSnackBar("Message Scheduled Successfully",MessagesActivity.this);
+                        if(selected[0]==0) {
+                            try {
+                                Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN, id, msg.getText().toString().trim(), String.valueOf(ts / 1000));
+                                call.enqueue(new Callback<SuccessResponse>() {
+                                    @Override
+                                    public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                        if (response.isSuccessful()) {
+                                            CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                                        Log.e(TAG, "user scheduling failed " + t.getMessage());
+                                    }
+                                });
+                            } catch (Exception e) {
+                                Log.e(TAG, "user scheduling exception " + e.getMessage());
+                            }
+                        }
+                        else if(selected[0]==1) {
+                            for(int i=0; i<4; i++) { //a month - 4 weeks in a month
+                                try {
+                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000) +(i*86400)));
+                                    call.enqueue(new Callback<SuccessResponse>() {
+                                        @Override
+                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                            if (response.isSuccessful()) {
+                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                                            Log.e(TAG, "user scheduling failed " + t.getMessage());
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    Log.e(TAG, "user scheduling exception " + e.getMessage());
                                 }
                             }
+                        }
+                        else if(selected[0]==2) {
+                            for(int i=0; i<6; i++) { //half year
+                                try {
+                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(USER_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000) +(i*86400*7)));
+                                    call.enqueue(new Callback<SuccessResponse>() {
+                                        @Override
+                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                            if (response.isSuccessful()) {
+                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
+                                            }
+                                        }
 
-                            @Override
-                            public void onFailure(Call<SuccessResponse> call, Throwable t) {
-
+                                        @Override
+                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                                            Log.e(TAG, "user scheduling failed " + t.getMessage());
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    Log.e(TAG, "user scheduling exception " + e.getMessage());
+                                }
                             }
-                        });
+                        }
                     }else{
                         CustomSnackBar.showSnackBar("Permission Denied! Not a member",MessagesActivity.this);
                     }
@@ -209,20 +259,70 @@ public class MessagesActivity extends AppCompatActivity {
                     Long ts = (stringToDate(dateSelected[0] + "-" + dateSelected[1] + "-" + dateSelected[2] + " " + timeSelected[0] + "-" + timeSelected[1]).getTime());
                     if (botChannelInfo.getChannel().getIsMember()) {
                         dialog.dismiss();
-                        Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf(ts / 1000));
-                        call.enqueue(new Callback<SuccessResponse>() {
-                            @Override
-                            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
-                                if (response.isSuccessful()) {
-                                    CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
+                        if(selected[0]==0) {
+                            try {
+                                Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf(ts / 1000));
+                                call.enqueue(new Callback<SuccessResponse>() {
+                                    @Override
+                                    public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                        if (response.isSuccessful()) {
+                                            CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                                        Log.e(TAG, "chatbot scheduling failed " + t.getMessage());
+                                    }
+                                });
+                            } catch (Exception e) {
+                                Log.e(TAG, "chatbot scheduling exception " + e.getMessage());
+                            }
+                        }
+                        else if(selected[0]==1) {
+                            for(int i=0; i<4; i++) { //a month - 4 weeks in a month
+                                try {
+                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000)+(i*86400)));
+                                    call.enqueue(new Callback<SuccessResponse>() {
+                                        @Override
+                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                            if (response.isSuccessful()) {
+                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                                            Log.e(TAG, "chatbot scheduling failed " + t.getMessage());
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    Log.e(TAG, "chatbot scheduling exception " + e.getMessage());
                                 }
                             }
+                        }
+                        else if(selected[0]==2) {
+                            for(int i=0; i<6; i++) { //half year
+                                try {
+                                    Call<SuccessResponse> call = retrofitCall.scheduleMessage(BOT_TOKEN, id, msg.getText().toString().trim(), String.valueOf((ts/1000)+(i*86400*7)));
+                                    call.enqueue(new Callback<SuccessResponse>() {
+                                        @Override
+                                        public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                            if (response.isSuccessful()) {
+                                                CustomSnackBar.showSnackBar("Message Scheduled Successfully", MessagesActivity.this);
+                                            }
+                                        }
 
-                            @Override
-                            public void onFailure(Call<SuccessResponse> call, Throwable t) {
-
+                                        @Override
+                                        public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                                            Log.e(TAG, "chatbot scheduling failed " + t.getMessage());
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    Log.e(TAG, "chatbot scheduling exception " + e.getMessage());
+                                }
                             }
-                        });
+                        }
                     } else {
                         CustomSnackBar.showSnackBar("Permission Denied! Chatbot is not a member",MessagesActivity.this);
                     }
@@ -234,7 +334,6 @@ public class MessagesActivity extends AppCompatActivity {
 
         if (type.equals("channel")) {
             title.setText(name);
-//            sendBotBtn.setVisibility(View.VISIBLE);
             timer.setVisibility(View.VISIBLE);
             loadChannelMessages();
             loadChannelInfo();
@@ -243,10 +342,8 @@ public class MessagesActivity extends AppCompatActivity {
             loadUserMessages();
         } else{
             title.setText(name);
-//            sendBotBtn.setVisibility(View.VISIBLE);
             loadChannelMessages();
             loadChannelInfo();
-//            sendBotBtn.setVisibility(View.GONE);
         }
     }
 

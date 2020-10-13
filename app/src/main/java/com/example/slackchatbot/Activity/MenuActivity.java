@@ -18,6 +18,7 @@ import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -60,7 +61,7 @@ public class MenuActivity extends AppCompatActivity {
 
     boolean doubleBackToExitPressedOnce = false;
 
-    MaterialRippleLayout addChannel;
+    CardView addChannel;
 
     OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
@@ -104,30 +105,59 @@ public class MenuActivity extends AppCompatActivity {
             Dialog dialog = new Dialog(this);
             View dialogView = LayoutInflater.from(this).inflate(R.layout.add_channel_dialog, null);
             dialog.setContentView(dialogView);
-            dialog.setCancelable(false);
             Window window = dialog.getWindow();
             assert window != null;
             window.setGravity(Gravity.CENTER);
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             window.setBackgroundDrawableResource(android.R.color.transparent);
             EditText channelName = dialogView.findViewById(R.id.add_cahnnel_name_et);
-            SwitchCompat channelType = dialogView.findViewById(R.id.add_channel_channel_type_switch);
             ImageView close = dialogView.findViewById(R.id.add_channel_close);
-            Button save = dialogView.findViewById(R.id.add_channel_btn);
+            CardView private_channel = dialogView.findViewById(R.id.private_channel);
+            CardView public_channel = dialogView.findViewById(R.id.public_channel);
+
             close.setOnClickListener(d -> dialog.dismiss());
-            save.setOnClickListener(d -> {
+
+            private_channel.setOnClickListener(d -> {
                 if(channelName.getText().toString().split(" ").length > 1){
                     CustomSnackBar.showSnackBar("Channel name cannot contain space", MenuActivity.this);
                 }
                 else if(!channelName.getText().toString().isEmpty()){
                     try {
                         dialog.dismiss();
-                        Call<SuccessResponse> call = retrofitCall.createChannel(USER_TOKEN, channelName.getText().toString(), channelType.isChecked() ? "true" : "false");
+                        Call<SuccessResponse> call = retrofitCall.createChannel(USER_TOKEN, channelName.getText().toString(), "true");
                         call.enqueue(new Callback<SuccessResponse>() {
                             @Override
                             public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
                                 if (response.isSuccessful()) {
-                                    loadChannelsData();
+                                    loadChannels();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<SuccessResponse> call, Throwable t) {
+                                Log.e(TAG,"addChannel failed : "+t.getMessage());
+                            }
+                        });
+                    }
+                    catch (Exception e){
+                        Log.e(TAG,"addChannel exception : "+e.getMessage());
+                    }
+                }
+            });
+
+            public_channel.setOnClickListener(d -> {
+                if(channelName.getText().toString().split(" ").length > 1){
+                    CustomSnackBar.showSnackBar("Channel name cannot contain space", MenuActivity.this);
+                }
+                else if(!channelName.getText().toString().isEmpty()){
+                    try {
+                        dialog.dismiss();
+                        Call<SuccessResponse> call = retrofitCall.createChannel(USER_TOKEN, channelName.getText().toString(), "false");
+                        call.enqueue(new Callback<SuccessResponse>() {
+                            @Override
+                            public void onResponse(Call<SuccessResponse> call, Response<SuccessResponse> response) {
+                                if (response.isSuccessful()) {
+                                    loadChannels();
                                 }
                             }
 
@@ -146,10 +176,10 @@ public class MenuActivity extends AppCompatActivity {
         });
 
 
-        loadChannelsData();
-        loadMessagesData();
-        loadScheduledUser();
-        loadScheduledBot();
+        loadChannels();
+        loadMessages();
+        loadScheduledMsg("user");
+        loadScheduledMsg("bot");
     }
 
     public void onBackPressed() {
@@ -167,13 +197,13 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadChannelsData();
-        loadMessagesData();
-        loadScheduledUser();
-        loadScheduledBot();
+        loadChannels();
+        loadMessages();
+        loadScheduledMsg("user");
+        loadScheduledMsg("bot");
     }
 
-    private void loadChannelsData() {
+    private void loadChannels() {
         channelsProgressBar.setVisibility(View.VISIBLE);
         channelsRecyclerView.setVisibility(View.GONE);
         Map<String, String> data = new HashMap<>();
@@ -226,7 +256,7 @@ public class MenuActivity extends AppCompatActivity {
         }
     }
 
-    private void loadMessagesData() {
+    private void loadMessages() {
         try {
             messagesProgressBar.setVisibility(View.VISIBLE);
             messagesRecyclerView.setVisibility(View.GONE);
@@ -279,22 +309,46 @@ public class MenuActivity extends AppCompatActivity {
         }
     }
 
-    private void loadScheduledUser(){
+    private void loadScheduledMsg(String userType){
         try {
-            scheduledUser.setVisibility(View.GONE);
-            scheduledUserProgressBar.setVisibility(View.VISIBLE);
-            Call<ScheduledMessagesAPI> call = retrofitCall.scheduledMessages(USER_TOKEN);
+            Call<ScheduledMessagesAPI> call;
+
+            if(userType.equals("user")) {
+                scheduledUser.setVisibility(View.GONE);
+                scheduledUserProgressBar.setVisibility(View.VISIBLE);
+                call = retrofitCall.scheduledMessages(USER_TOKEN);
+            }
+            else {
+                scheduledBot.setVisibility(View.GONE);
+                scheduledBotProgressBar.setVisibility(View.VISIBLE);
+                call = retrofitCall.scheduledMessages(BOT_TOKEN);
+            }
+
             call.enqueue(new Callback<ScheduledMessagesAPI>() {
                 @Override
                 public void onResponse(Call<ScheduledMessagesAPI> call, Response<ScheduledMessagesAPI> response) {
-                    scheduledUser.setVisibility(View.VISIBLE);
-                    scheduledUserProgressBar.setVisibility(View.GONE);
-                    if (response.isSuccessful()) {
-                        try {
-                            userScheduled = response.body();
-                            scheduledUser.setAdapter(new ScheduledMessagesAdapter(MenuActivity.this, userScheduled.getScheduledMessages()));
-                        } catch (Exception e) {
-                            Log.e(TAG, e.getMessage());
+                    if(userType.equals("user")) {
+                        scheduledUser.setVisibility(View.VISIBLE);
+                        scheduledUserProgressBar.setVisibility(View.GONE);
+                        if (response.isSuccessful()) {
+                            try {
+                                userScheduled = response.body();
+                                scheduledUser.setAdapter(new ScheduledMessagesAdapter(MenuActivity.this, userScheduled.getScheduledMessages()));
+                            } catch (Exception e) {
+                                Log.e(TAG, e.getMessage());
+                            }
+                        }
+                    }
+                    else{
+                        scheduledBot.setVisibility(View.VISIBLE);
+                        scheduledBotProgressBar.setVisibility(View.GONE);
+                        if (response.isSuccessful()) {
+                            try {
+                                botScheduled = response.body();
+                                scheduledBot.setAdapter(new ScheduledMessagesAdapter(MenuActivity.this, botScheduled.getScheduledMessages()));
+                            } catch (Exception e) {
+                                Log.e(TAG, "loadScheduledBot exception: "+e.getMessage());
+                            }
                         }
                     }
                 }
@@ -303,45 +357,14 @@ public class MenuActivity extends AppCompatActivity {
                 public void onFailure(Call<ScheduledMessagesAPI> call, Throwable t) {
                     Log.e(TAG,"loadScheduledUser failed: "+t.getMessage());
                     scheduledUserProgressBar.setVisibility(View.GONE);
+                    scheduledBotProgressBar.setVisibility(View.GONE);
                 }
             });
         }
         catch (Exception e){
             Log.e(TAG,"loadScheduledUser exception: "+e.getMessage());
             scheduledUserProgressBar.setVisibility(View.GONE);
-        }
-    }
-
-    private void loadScheduledBot(){
-        try {
-            scheduledBot.setVisibility(View.GONE);
-            scheduledBotProgressBar.setVisibility(View.VISIBLE);
-            Call<ScheduledMessagesAPI> call = retrofitCall.scheduledMessages(BOT_TOKEN);
-            call.enqueue(new Callback<ScheduledMessagesAPI>() {
-                @Override
-                public void onResponse(Call<ScheduledMessagesAPI> call, Response<ScheduledMessagesAPI> response) {
-                    scheduledBot.setVisibility(View.VISIBLE);
-                    scheduledBotProgressBar.setVisibility(View.GONE);
-                    if (response.isSuccessful()) {
-                        try {
-                            botScheduled = response.body();
-                            scheduledBot.setAdapter(new ScheduledMessagesAdapter(MenuActivity.this, botScheduled.getScheduledMessages()));
-                        } catch (Exception e) {
-                            Log.e(TAG, "loadScheduledBot exception: "+e.getMessage());
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<ScheduledMessagesAPI> call, Throwable t) {
-                    scheduledBotProgressBar.setVisibility(View.GONE);
-                    Log.e(TAG, "loadScheduledBot failed: "+t.getMessage());
-                }
-            });
-        }
-        catch (Exception e){
             scheduledBotProgressBar.setVisibility(View.GONE);
-            Log.e(TAG, "loadScheduledBot exception: "+e.getMessage());
         }
     }
 }
