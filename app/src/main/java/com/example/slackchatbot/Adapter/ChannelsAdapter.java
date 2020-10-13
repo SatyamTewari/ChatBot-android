@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.balysv.materialripple.MaterialRippleLayout;
 import com.example.slackchatbot.Models.ChannelsAPI.Channel;
 import com.example.slackchatbot.R;
 
@@ -50,12 +49,10 @@ public class ChannelsAdapter extends RecyclerView.Adapter<ChannelsAdapter.MyView
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView name;
         ImageView channelPrivate;
-        MaterialRippleLayout rippleLayout;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.channels_adapter_name_tv);
-            rippleLayout = itemView.findViewById(R.id.channel_adapter_ripple);
             channelPrivate = itemView.findViewById(R.id.channels_adapter_prefix);
         }
     }

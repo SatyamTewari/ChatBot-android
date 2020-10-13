@@ -22,7 +22,6 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.balysv.materialripple.MaterialRippleLayout;
 import com.example.slackchatbot.Adapter.ChannelsAdapter;
 import com.example.slackchatbot.Adapter.DMAdapter;
 import com.example.slackchatbot.Adapter.ScheduledMessagesAdapter;

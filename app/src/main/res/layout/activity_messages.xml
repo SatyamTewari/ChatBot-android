@@ -20,7 +20,7 @@
             android:layout_width="?actionBarSize"
             android:layout_height="match_parent">
 
-            <com.balysv.materialripple.MaterialRippleLayout
+            <RelativeLayout
                 android:id="@+id/messages_back"
                 android:layout_gravity="center"
                 android:layout_width="match_parent"
@@ -33,7 +33,7 @@
                     app:srcCompat="?attr/actionModeCloseDrawable"
                     app:tint="#FFFFFF" />
 
-            </com.balysv.materialripple.MaterialRippleLayout>
+            </RelativeLayout>
 
         </androidx.cardview.widget.CardView>
 
@@ -55,7 +55,7 @@
             android:layout_width="?actionBarSize"
             android:layout_height="match_parent">
 
-            <com.balysv.materialripple.MaterialRippleLayout
+            <RelativeLayout
                 android:id="@+id/messages_timer"
                 android:layout_gravity="center"
                 android:visibility="gone"
@@ -68,7 +68,7 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/schedule_msg"/>
 
-            </com.balysv.materialripple.MaterialRippleLayout>
+            </RelativeLayout>
 
         </androidx.cardview.widget.CardView>
 

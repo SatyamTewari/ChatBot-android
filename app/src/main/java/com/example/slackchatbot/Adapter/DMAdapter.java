@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.balysv.materialripple.MaterialRippleLayout;
 import com.bumptech.glide.Glide;
 import com.example.slackchatbot.Activity.MenuActivity;
 import com.example.slackchatbot.Class.ApiRequestClass;
@@ -75,13 +74,11 @@ public class DMAdapter extends RecyclerView.Adapter<DMAdapter.MyViewHolder> {
     public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView name;
         ImageView image,prefix;
-        MaterialRippleLayout ripple;
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.channels_adapter_name_tv);
             prefix = itemView.findViewById(R.id.channels_adapter_prefix);
             image = itemView.findViewById(R.id.channels_adapter_icon);
-            ripple = itemView.findViewById(R.id.channel_adapter_ripple);
         }
     }
 }
